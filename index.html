@@ -1,232 +1,441 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Work Time Pro</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Work Time Tracker</title>
+
 <style>
-:root{--bg:#0b1220;--card:#111827;--accent:#3b82f6;--accent2:#10b981;--text:#e5e7eb;--muted:#9ca3af;--danger:#ef4444}
-body{margin:0;font-family:system-ui;background:linear-gradient(160deg,#0b1220,#1f2937);color:var(--text)}
-.app{max-width:420px;margin:auto}
-.header{padding:20px;font-size:20px;font-weight:700;transition:0.3s}
+    *{
+        box-sizing:border-box;
+    }
 
+    body{
+        margin:0;
+        font-family:Inter, Arial, sans-serif;
+        background:#0f172a;
+        color:white;
+        min-height:100vh;
+        padding:20px;
+    }
 
-.card{
-  background:var(--card);
-  margin:12px;
-  padding:16px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
-  transition: all 0.25s ease;
-}
+    .container{
+        max-width:900px;
+        margin:auto;
+    }
 
+    h1{
+        margin-top:0;
+        font-size:32px;
+    }
 
-.card:hover{
-  transform: translateY(-3px);
-  box-shadow:0 14px 40px rgba(0,0,0,.6);
-}
+    .subtitle{
+        opacity:0.7;
+        margin-bottom:30px;
+    }
 
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:20px;
+    }
 
-.label{color:var(--muted);font-size:12px}
+    .card{
+        background:rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        border-radius:24px;
+        padding:20px;
+        transition:0.25s ease;
+        animation:fadeIn 0.4s ease;
+    }
 
+    .card:hover{
+        transform:translateY(-3px);
+        border-color:#3b82f6;
+    }
 
-input{
-  width:100%;
-  margin-top:6px;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-  background:#1f2937;
-  color:white;
-  transition:0.2s;
-}
+    label{
+        display:block;
+        margin-bottom:10px;
+        font-weight:600;
+    }
 
+    input[type="time"]{
+        width:100%;
+        padding:14px;
+        border:none;
+        border-radius:14px;
+        background:#1e293b;
+        color:white;
+        font-size:16px;
+    }
 
-input:focus{
-  outline:none;
-  box-shadow:0 0 0 2px var(--accent);
-}
+    button{
+        border:none;
+        background:#2563eb;
+        color:white;
+        padding:14px 18px;
+        border-radius:14px;
+        cursor:pointer;
+        font-weight:bold;
+        transition:0.2s ease;
+    }
 
+    button:hover{
+        transform:scale(1.03);
+        background:#3b82f6;
+    }
 
-.row{display:flex;gap:10px;margin-top:10px}
+    .danger{
+        background:#dc2626;
+    }
 
+    .uscita{
+        margin-top:15px;
+        padding:15px;
+        background:#111827;
+        border-radius:16px;
+    }
 
-button{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-weight:600;
-  font-size:15px;
-  color:white;
-  background:linear-gradient(135deg,var(--accent),#2563eb);
-  cursor:pointer;
-  transition: all 0.2s ease;
-}
+    .uscita-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr auto;
+        gap:10px;
+        align-items:end;
+    }
 
+    .metric{
+        font-size:28px;
+        font-weight:bold;
+        margin-top:10px;
+    }
 
-button:hover{
-  transform: translateY(-2px) scale(1.02);
-  box-shadow:0 6px 18px rgba(59,130,246,0.5);
-}
+    .small{
+        opacity:0.7;
+        font-size:14px;
+    }
 
+    .progress-container{
+        width:100%;
+        height:24px;
+        background:#1e293b;
+        border-radius:999px;
+        overflow:hidden;
+        margin-top:20px;
+    }
 
-button:active{
-  transform:scale(0.96);
-  box-shadow:0 2px 6px rgba(0,0,0,0.4);
-}
+    .progress-bar{
+        height:100%;
+        width:0%;
+        background:linear-gradient(90deg,#3b82f6,#06b6d4);
+        transition:width 1s linear;
+    }
 
+    .warning{
+        color:#fca5a5;
+        font-weight:bold;
+    }
 
-.progress{height:22px;background:#1f2937;border-radius:12px;overflow:hidden;margin-top:12px}
+    .good{
+        color:#86efac;
+        font-weight:bold;
+    }
 
+    footer{
+        text-align:center;
+        margin-top:40px;
+        opacity:0.6;
+        font-size:14px;
+    }
 
-.bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,var(--accent2),#22c55e);
-  transition:width 0.6s ease;
-}
-
-
-.kpi{font-size:22px;font-weight:bold;margin-top:10px}
-.small{color:var(--muted);font-size:13px}
-.loss{color:var(--danger);font-weight:bold}
-
-
-footer{
-  text-align:center;
-  color:#6b7280;
-  font-size:12px;
-  margin:15px;
-  opacity:0.7;
-  transition:0.3s;
-}
-
-
-footer:hover{
-  opacity:1;
-}
+    @keyframes fadeIn{
+        from{
+            opacity:0;
+            transform:translateY(10px);
+        }
+        to{
+            opacity:1;
+            transform:translateY(0);
+        }
+    }
 </style>
 </head>
+
 <body>
-<div class="app">
-<div class="header">⏱️ Work Time Pro</div>
 
-<div class="card">
-<div class="label">Ingresso</div>
-<input type="time" id="startTime">
-</div>
+<div class="container">
 
-<div class="card">
-<div class="label">Uscite</div>
-<div id="breaks"></div>
-<button onclick="addBreak()">+ Aggiungi pausa</button>
-</div>
+    <h1>Work Time Tracker</h1>
+    <div class="subtitle">
+        Monitoraggio intelligente dell'orario lavorativo
+    </div>
 
-<div class="card">
-<button onclick="calcola()">Avvia</button>
-</div>
+    <div class="grid">
 
-<div class="card">
-<div class="label">Progresso</div>
-<div class="progress"><div class="bar" id="bar"></div></div>
-<div id="perc" class="small"></div>
-</div>
+        <div class="card">
+            <label>Orario ingresso</label>
+            <input type="time" id="entrata">
 
-<div class="card">
-<div class="kpi" id="fine"></div>
-<div class="small" id="fineCountdown"></div>
-</div>
+            <div style="margin-top:20px;">
+                <button onclick="aggiungiUscita()">
+                    + Aggiungi uscita
+                </button>
+            </div>
 
-<div class="card">
-<div class="kpi" id="buono"></div>
-<div class="small" id="buonoCountdown"></div>
-</div>
+            <div id="usciteContainer"></div>
+        </div>
 
-<div class="card">
-<div class="loss" id="lossNow"></div>
-</div>
+        <div class="card">
+            <div class="small">Tempo lavorato</div>
+            <div class="metric" id="tempoLavorato">00:00</div>
 
+            <div class="small" style="margin-top:20px;">
+                Fine giornata
+            </div>
+            <div class="metric" id="fineGiornata">--:--</div>
 
-<footer>Sviluppato da Lorenzo Birindelli</footer>
+            <div class="small" style="margin-top:20px;">
+                Buono pasto
+            </div>
+            <div class="metric" id="buonoPasto">--:--</div>
+        </div>
+
+        <div class="card">
+            <div class="small">Countdown fine giornata</div>
+            <div class="metric" id="countdownFine">--:--</div>
+
+            <div class="small" style="margin-top:20px;">
+                Countdown buono pasto
+            </div>
+            <div class="metric" id="countdownBuono">--:--</div>
+
+            <div style="margin-top:20px;" id="uscitaOraMsg"></div>
+        </div>
+
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <div class="small">Progresso giornata</div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div style="margin-top:12px;" id="progressText">
+            0%
+        </div>
+
+        <div style="margin-top:20px;" id="pausaInfo"></div>
+    </div>
+
+    <footer>
+        Sviluppato da Lorenzo Birindelli
+    </footer>
+
 </div>
 
 <script>
-function addBreak(){
-  const d=document.createElement("div");
-  d.className="row";
-  d.innerHTML=`<input type="time"><input type="time">`;
-  document.getElementById("breaks").appendChild(d);
+
+const LAVORO_MIN = 7 * 60 + 12;
+const BUONO_MIN = 6 * 60 + 12;
+
+let notificaBuono = false;
+let notificaFine = false;
+
+function timeToMinutes(time){
+    const [h,m] = time.split(":").map(Number);
+    return h*60+m;
 }
 
-function t2m(t){const[a,b]=t.split(":").map(Number);return a*60+b}
-function m2t(m){return String(Math.floor(Math.max(m,0)/60)).padStart(2,'0')+":"+String(Math.max(m,0)%60).padStart(2,'0')}
+function minutesToHHMM(min){
+    min = Math.floor(min);
 
+    let h = Math.floor(min/60);
+    let m = min%60;
 
-let startM=0, workDone=0;
-const target=432;
-let fineT=0, buonoT=0;
+    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+}
 
+function aggiungiUscita(){
 
-function calcola(){
-  const s=document.getElementById("startTime").value;
-  if(!s)return alert("Inserisci ora");
+    const container = document.getElementById("usciteContainer");
 
-  startM=t2m(s);
-  workDone=0;
-  let current=startM;
+    const div = document.createElement("div");
+    div.className = "uscita";
 
+    div.innerHTML = `
+        <div class="uscita-grid">
 
-  document.querySelectorAll(".row").forEach(r=>{
-    let ex=r.children[0].value;
-    let en=r.children[1].value;
-    if(ex&&en){
-      let e=t2m(ex);
-      let ri=t2m(en);
-      if(e>current) workDone+=e-current;
-      current=ri;
+            <div>
+                <label>Uscita</label>
+                <input type="time" class="uscitaOra">
+            </div>
+
+            <div>
+                <label>Rientro</label>
+                <input type="time" class="rientroOra">
+            </div>
+
+            <button class="danger" onclick="this.parentElement.parentElement.remove()">
+                X
+            </button>
+
+        </div>
+    `;
+
+    container.appendChild(div);
+}
+
+function getPauseData(){
+
+    const uscite = document.querySelectorAll(".uscita");
+
+    let pauseTotali = 0;
+    let pausaPranzoValida = false;
+
+    uscite.forEach(el => {
+
+        const uscita = el.querySelector(".uscitaOra").value;
+        const rientro = el.querySelector(".rientroOra").value;
+
+        if(!uscita || !rientro) return;
+
+        const out = timeToMinutes(uscita);
+        const inn = timeToMinutes(rientro);
+
+        if(inn <= out) return;
+
+        const durata = inn - out;
+
+        pauseTotali += durata;
+
+        const inizioPranzo = 12 * 60;
+        const finePranzo = 15 * 60;
+
+        if(
+            out >= inizioPranzo &&
+            inn <= finePranzo &&
+            durata >= 30
+        ){
+            pausaPranzoValida = true;
+        }
+
+    });
+
+    return {
+        pauseTotali,
+        pausaPranzoValida
+    };
+}
+
+function aggiorna(){
+
+    const entrata = document.getElementById("entrata").value;
+
+    if(!entrata) return;
+
+    const entrataMin = timeToMinutes(entrata);
+
+    const now = new Date();
+
+    const nowMin = now.getHours()*60 + now.getMinutes();
+
+    const {
+        pauseTotali,
+        pausaPranzoValida
+    } = getPauseData();
+
+    let penalita = pausaPranzoValida ? 0 : 30;
+
+    let tempoLavorato = nowMin - entrataMin - pauseTotali - penalita;
+
+    if(tempoLavorato < 0){
+        tempoLavorato = 0;
     }
-  });
 
-  fineT=current+(target-workDone);
-  buonoT=current+(372-workDone);
+    const fineGiornataMin =
+        entrataMin + LAVORO_MIN + pauseTotali + penalita;
 
+    const buonoPastoMin =
+        entrataMin + BUONO_MIN + pauseTotali + penalita;
 
-  document.getElementById("fine").innerText="Fine: "+m2t(fineT);
-  document.getElementById("buono").innerText="Buono: "+m2t(buonoT);
+    document.getElementById("tempoLavorato").innerText =
+        minutesToHHMM(tempoLavorato);
 
-  live();
+    document.getElementById("fineGiornata").innerText =
+        minutesToHHMM(fineGiornataMin);
+
+    document.getElementById("buonoPasto").innerText =
+        minutesToHHMM(buonoPastoMin);
+
+    const countdownFine = fineGiornataMin - nowMin;
+    const countdownBuono = buonoPastoMin - nowMin;
+
+    document.getElementById("countdownFine").innerText =
+        countdownFine > 0
+            ? minutesToHHMM(countdownFine)
+            : "COMPLETATO";
+
+    document.getElementById("countdownBuono").innerText =
+        countdownBuono > 0
+            ? minutesToHHMM(countdownBuono)
+            : "MATURATO";
+
+    const progress =
+        Math.min((tempoLavorato / LAVORO_MIN) * 100,100);
+
+    document.getElementById("progressBar").style.width =
+        progress + "%";
+
+    document.getElementById("progressText").innerText =
+        progress.toFixed(1) + "% completato";
+
+    const mancante = LAVORO_MIN - tempoLavorato;
+
+    if(mancante > 0){
+        document.getElementById("uscitaOraMsg").innerHTML =
+            `<span class="warning">
+                Se esci ora perdi: ${minutesToHHMM(mancante)}
+            </span>`;
+    }else{
+        document.getElementById("uscitaOraMsg").innerHTML =
+            `<span class="good">
+                Hai completato la giornata
+            </span>`;
+    }
+
+    document.getElementById("pausaInfo").innerHTML =
+        pausaPranzoValida
+        ? `<span class="good">
+            Pausa pranzo valida rilevata automaticamente
+           </span>`
+        : `<span class="warning">
+            Nessuna pausa pranzo valida → +30 min da recuperare
+           </span>`;
+
+    if(Notification.permission === "granted"){
+
+        if(countdownBuono <= 0 && !notificaBuono){
+            new Notification("Buono pasto maturato");
+            notificaBuono = true;
+        }
+
+        if(countdownFine <= 0 && !notificaFine){
+            new Notification("Giornata lavorativa completata");
+            notificaFine = true;
+        }
+    }
 }
 
-function live(){
-  setInterval(()=>{
-    let now=new Date();
-    let m=now.getHours()*60+now.getMinutes();
+setInterval(aggiorna,1000);
 
-
-    let liveWork = workDone;
-    if(m>startM) liveWork += (m-startM);
-
-
-    let remaining = target - liveWork;
-
-    let prog=(liveWork/target)*100;
-    document.getElementById("bar").style.width=Math.min(100,prog)+"%";
-    document.getElementById("perc").innerText="Lavoro: "+m2t(liveWork)+" / 07:12";
-
-    let rf=fineT-m;
-    let rb=buonoT-m;
-
-    document.getElementById("fineCountdown").innerText = rf>0?"Fine tra "+m2t(rf):"✅ Fine";
-    document.getElementById("buonoCountdown").innerText = rb>0?"Buono tra "+m2t(rb):"🍽️ OK";
-
-    document.getElementById("lossNow").innerText =
-      remaining>0
-      ? "Se esci ora perdi: "+m2t(remaining)+" ore"
-      : "✅ Hai completato la giornata";
-
-  },1000);
+if("Notification" in window){
+    Notification.requestPermission();
 }
+
 </script>
+
 </body>
+</html>
