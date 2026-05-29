@@ -168,6 +168,7 @@
 <div class="container">
 
     <h1>Work Time Tracker</h1>
+
     <div class="subtitle">
         Monitoraggio intelligente dell'orario lavorativo
     </div>
@@ -175,7 +176,9 @@
     <div class="grid">
 
         <div class="card">
+
             <label>Orario ingresso</label>
+
             <input type="time" id="entrata">
 
             <div style="margin-top:20px;">
@@ -185,38 +188,48 @@
             </div>
 
             <div id="usciteContainer"></div>
+
         </div>
 
         <div class="card">
+
             <div class="small">Tempo lavorato</div>
             <div class="metric" id="tempoLavorato">00:00</div>
 
             <div class="small" style="margin-top:20px;">
                 Fine giornata
             </div>
+
             <div class="metric" id="fineGiornata">--:--</div>
 
             <div class="small" style="margin-top:20px;">
                 Buono pasto
             </div>
+
             <div class="metric" id="buonoPasto">--:--</div>
+
         </div>
 
         <div class="card">
+
             <div class="small">Countdown fine giornata</div>
+
             <div class="metric" id="countdownFine">--:--</div>
 
             <div class="small" style="margin-top:20px;">
                 Countdown buono pasto
             </div>
+
             <div class="metric" id="countdownBuono">--:--</div>
 
             <div style="margin-top:20px;" id="uscitaOraMsg"></div>
+
         </div>
 
     </div>
 
     <div class="card" style="margin-top:20px;">
+
         <div class="small">Progresso giornata</div>
 
         <div class="progress-container">
@@ -228,6 +241,7 @@
         </div>
 
         <div style="margin-top:20px;" id="pausaInfo"></div>
+
     </div>
 
     <footer>
@@ -239,21 +253,24 @@
 <script>
 
 const LAVORO_MIN = 7 * 60 + 12;
-const BUONO_MIN = 6 * 60 + 12;
+const BUONO_MIN = 6 * 60;
 
 let notificaBuono = false;
 let notificaFine = false;
 
 function timeToMinutes(time){
+
     const [h,m] = time.split(":").map(Number);
-    return h*60+m;
+
+    return h * 60 + m;
 }
 
 function minutesToHHMM(min){
+
     min = Math.floor(min);
 
-    let h = Math.floor(min/60);
-    let m = min%60;
+    let h = Math.floor(min / 60);
+    let m = min % 60;
 
     return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
 }
@@ -263,6 +280,7 @@ function aggiungiUscita(){
     const container = document.getElementById("usciteContainer");
 
     const div = document.createElement("div");
+
     div.className = "uscita";
 
     div.innerHTML = `
@@ -340,26 +358,35 @@ function aggiorna(){
 
     const now = new Date();
 
-    const nowMin = now.getHours()*60 + now.getMinutes();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
 
     const {
         pauseTotali,
         pausaPranzoValida
     } = getPauseData();
 
-    let penalita = pausaPranzoValida ? 0 : 30;
+    const penalitaFine = pausaPranzoValida ? 0 : 30;
 
-    let tempoLavorato = nowMin - entrataMin - pauseTotali - penalita;
+    const penalitaBuono = pausaPranzoValida ? 0 : 30;
+
+    let tempoLavorato =
+        nowMin - entrataMin - pauseTotali - penalitaFine;
 
     if(tempoLavorato < 0){
         tempoLavorato = 0;
     }
 
     const fineGiornataMin =
-        entrataMin + LAVORO_MIN + pauseTotali + penalita;
+        entrataMin +
+        LAVORO_MIN +
+        pauseTotali +
+        penalitaFine;
 
     const buonoPastoMin =
-        entrataMin + BUONO_MIN + pauseTotali + penalita;
+        entrataMin +
+        BUONO_MIN +
+        pauseTotali +
+        penalitaBuono;
 
     document.getElementById("tempoLavorato").innerText =
         minutesToHHMM(tempoLavorato);
@@ -384,7 +411,7 @@ function aggiorna(){
             : "MATURATO";
 
     const progress =
-        Math.min((tempoLavorato / LAVORO_MIN) * 100,100);
+        Math.min((tempoLavorato / LAVORO_MIN) * 100, 100);
 
     document.getElementById("progressBar").style.width =
         progress + "%";
@@ -395,11 +422,14 @@ function aggiorna(){
     const mancante = LAVORO_MIN - tempoLavorato;
 
     if(mancante > 0){
+
         document.getElementById("uscitaOraMsg").innerHTML =
             `<span class="warning">
                 Se esci ora perdi: ${minutesToHHMM(mancante)}
             </span>`;
+
     }else{
+
         document.getElementById("uscitaOraMsg").innerHTML =
             `<span class="good">
                 Hai completato la giornata
@@ -418,18 +448,22 @@ function aggiorna(){
     if(Notification.permission === "granted"){
 
         if(countdownBuono <= 0 && !notificaBuono){
+
             new Notification("Buono pasto maturato");
+
             notificaBuono = true;
         }
 
         if(countdownFine <= 0 && !notificaFine){
+
             new Notification("Giornata lavorativa completata");
+
             notificaFine = true;
         }
     }
 }
 
-setInterval(aggiorna,1000);
+setInterval(aggiorna, 1000);
 
 if("Notification" in window){
     Notification.requestPermission();
