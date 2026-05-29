@@ -4,119 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Work Time Pro</title>
-
 <style>
-:root {
-  --bg:#0b1220;
-  --card:#111827;
-  --accent:#3b82f6;
-  --accent2:#10b981;
-  --text:#e5e7eb;
-  --muted:#9ca3af;
-}
-
-body{
-  margin:0;
-  font-family:system-ui,Segoe UI;
-  background:linear-gradient(160deg,#0b1220,#1f2937);
-  color:var(--text);
-}
-
-.app{
-  max-width:420px;
-  margin:auto;
-  padding-bottom:30px;
-}
-
-.header{
-  padding:20px;
-  font-size:20px;
-  font-weight:700;
-}
-
-.card{
-  background:var(--card);
-  margin:12px;
-  padding:16px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.4);
-}
-
-.label{
-  color:var(--muted);
-  font-size:12px;
-}
-
-input{
-  width:100%;
-  margin-top:6px;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-  background:#1f2937;
-  color:white;
-}
-
-.row{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-
-.button{
-  margin:12px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-weight:bold;
-  font-size:16px;
-  color:white;
-  background:linear-gradient(135deg,var(--accent),#2563eb);
-}
-
-.progress{
-  height:22px;
-  background:#1f2937;
-  border-radius:12px;
-  overflow:hidden;
-  margin-top:12px;
-}
-
-.bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,var(--accent2),#22c55e);
-  transition:0.3s;
-}
-
-.kpi{
-  font-size:22px;
-  font-weight:bold;
-  margin-top:10px;
-}
-
-.small{
-  color:var(--muted);
-  font-size:13px;
-}
-
-footer{
-  text-align:center;
-  color:#6b7280;
-  font-size:12px;
-  margin-top:20px;
-}
+:root{--bg:#0b1220;--card:#111827;--accent:#3b82f6;--accent2:#10b981;--text:#e5e7eb;--muted:#9ca3af;--danger:#ef4444}
+body{margin:0;font-family:system-ui;background:linear-gradient(160deg,#0b1220,#1f2937);color:var(--text)}
+.app{max-width:420px;margin:auto}
+.header{padding:20px;font-size:20px;font-weight:700}
+.card{background:var(--card);margin:12px;padding:16px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.label{color:var(--muted);font-size:12px}
+input{width:100%;margin-top:6px;padding:12px;border-radius:10px;border:none;font-size:16px;background:#1f2937;color:white}
+.row{display:flex;gap:10px;margin-top:10px}
+button{width:100%;padding:14px;border-radius:14px;border:none;font-weight:600;font-size:15px;color:white;background:linear-gradient(135deg,var(--accent),#2563eb)}
+.progress{height:22px;background:#1f2937;border-radius:12px;overflow:hidden;margin-top:12px}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent2),#22c55e);transition:.3s}
+.kpi{font-size:22px;font-weight:bold;margin-top:10px}
+.small{color:var(--muted);font-size:13px}
+.loss{color:var(--danger);font-weight:bold}
+footer{text-align:center;color:#6b7280;font-size:12px;margin:15px}
 </style>
 </head>
-
 <body>
 <div class="app">
-
 <div class="header">⏱️ Work Time Pro</div>
 
 <div class="card">
@@ -130,7 +37,7 @@ footer{
 <button onclick="addBreak()">+ Aggiungi pausa</button>
 </div>
 
-<div class="button">
+<div class="card">
 <button onclick="calcola()">Avvia</button>
 </div>
 
@@ -150,8 +57,10 @@ footer{
 <div class="small" id="buonoCountdown"></div>
 </div>
 
+<div class="card">
+<div class="loss" id="lossNow"></div>
+</div>
 <footer>Sviluppato da Lorenzo Birindelli</footer>
-
 </div>
 
 <script>
@@ -163,31 +72,30 @@ function addBreak(){
 }
 
 function t2m(t){const[a,b]=t.split(":").map(Number);return a*60+b}
-function m2t(m){return String(Math.floor(m/60)).padStart(2,'0')+":"+String(m%60).padStart(2,'0')}
-
-let fineT=0,buonoT=0;
-
+function m2t(m){return String(Math.floor(Math.max(m,0)/60)).padStart(2,'0')+":"+String(Math.max(m,0)%60).padStart(2,'0')}
+let startM=0, workDone=0;
+const target=432; //7h12
+let fineT=0, buonoT=0;
 function calcola(){
   const s=document.getElementById("startTime").value;
   if(!s)return alert("Inserisci ora");
 
-  let current=t2m(s);
-  let work=0;
-
+  startM=t2m(s);
+  workDone=0;
+  let current=startM;
   document.querySelectorAll(".row").forEach(r=>{
     let ex=r.children[0].value;
     let en=r.children[1].value;
     if(ex&&en){
       let e=t2m(ex);
       let ri=t2m(en);
-      if(e>current) work+=e-current;
+      if(e>current) workDone+=e-current;
       current=ri;
     }
   });
 
-  fineT=current+(432-work);
-  buonoT=current+(372-work);
-
+  fineT=current+(target-workDone);
+  buonoT=current+(372-workDone);
   document.getElementById("fine").innerText="Fine: "+m2t(fineT);
   document.getElementById("buono").innerText="Buono: "+m2t(buonoT);
 
@@ -196,12 +104,18 @@ function calcola(){
 
 function live(){
   setInterval(()=>{
-    let n=new Date();
-    let m=n.getHours()*60+n.getMinutes();
+    let now=new Date();
+    let m=now.getHours()*60+now.getMinutes();
+    // lavoro fatto live
+    let liveWork = workDone;
+    if(m>startM) liveWork += (m-startM);
+    let remaining = target - liveWork;
 
-    let p=Math.min(100,(m/fineT)*100);
-    document.getElementById("bar").style.width=p+"%";
-    document.getElementById("perc").innerText="Progress: "+p.toFixed(1)+"%";
+
+    let prog=(liveWork/target)*100;
+    document.getElementById("bar").style.width=Math.min(100,prog)+"%";
+    document.getElementById("perc").innerText="Lavoro: "+m2t(liveWork)+" / 07:12";
+
 
     let rf=fineT-m;
     let rb=buonoT-m;
@@ -209,9 +123,14 @@ function live(){
     document.getElementById("fineCountdown").innerText = rf>0?"Fine tra "+m2t(rf):"✅ Fine";
     document.getElementById("buonoCountdown").innerText = rb>0?"Buono tra "+m2t(rb):"🍽️ OK";
 
+    // perdita se esci ora
+    document.getElementById("lossNow").innerText =
+      remaining>0
+      ? "Se esci ora perdi: "+m2t(remaining)+" ore"
+      : "✅ Hai completato la giornata";
+
+
   },1000);
 }
 </script>
-
 </body>
-</html>
