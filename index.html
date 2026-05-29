@@ -3,127 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Work Time App</title>
+<title>Work Time Pro</title>
+
 <style>
-:root{
-  --primary:#1e293b;
-  --secondary:#0f172a;
-  --accent:#3b82f6;
-  --accent2:#22c55e;
-  --danger:#ef4444;
-  --card:#ffffff;
+:root {
+  --bg:#0b1220;
+  --card:#111827;
+  --accent:#3b82f6;
+  --accent2:#10b981;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
 }
 
 body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI;
-  background: var(--secondary);
-  color:#111;
+  margin:0;
+  font-family:system-ui,Segoe UI;
+  background:linear-gradient(160deg,#0b1220,#1f2937);
+  color:var(--text);
 }
 
 .app{
-  max-width:420px;
-  margin:auto;
-  min-height:100vh;
+  max-width:420px;
+  margin:auto;
+  padding-bottom:30px;
 }
 
-
-header{
-  background: var(--primary);
-  color:white;
-  padding:16px;
-  font-size:18px;
-  font-weight:600;
+.header{
+  padding:20px;
+  font-size:20px;
+  font-weight:700;
 }
 
 .card{
-  background:var(--card);
-  margin:12px;
-  padding:14px;
-  border-radius:14px;
-  box-shadow:0 3px 8px rgba(0,0,0,0.2);
+  background:var(--card);
+  margin:12px;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 .label{
-  font-size:13px;
-  color:#666;
+  color:var(--muted);
+  font-size:12px;
 }
 
-
 input{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:16px;
+  width:100%;
+  margin-top:6px;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
+  background:#1f2937;
+  color:white;
 }
 
 .row{
-  display:flex;
-  gap:6px;
-  margin-top:8px;
+  display:flex;
+  gap:10px;
+  margin-top:10px;
 }
 
+.button{
+  margin:12px;
+}
 
 button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  font-size:15px;
-  font-weight:600;
-  background:var(--accent);
-  color:white;
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  font-weight:bold;
+  font-size:16px;
+  color:white;
+  background:linear-gradient(135deg,var(--accent),#2563eb);
 }
-
-.addBtn{
-  background:#64748b;
-}
-
 
 .progress{
-  height:20px;
-  background:#e5e7eb;
-  border-radius:10px;
-  overflow:hidden;
-  margin-top:10px;
+  height:22px;
+  background:#1f2937;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:12px;
 }
 
 .bar{
-  height:100%;
-  width:0%;
-  background:var(--accent);
-  transition:0.3s;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--accent2),#22c55e);
+  transition:0.3s;
 }
 
 .kpi{
-  font-size:20px;
-  font-weight:bold;
+  font-size:22px;
+  font-weight:bold;
+  margin-top:10px;
 }
 
-.small{font-size:13px;color:#666;}
-
-
-.footer{
-  text-align:center;
-  font-size:12px;
-  color:#aaa;
-  padding:10px;
+.small{
+  color:var(--muted);
+  font-size:13px;
 }
 
-
-/* DESKTOP CENTER */
-@media(min-width:700px){
-  .app{max-width:500px;}
+footer{
+  text-align:center;
+  color:#6b7280;
+  font-size:12px;
+  margin-top:20px;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-<header>⏱️ Work Time</header>
 
+<div class="header">⏱️ Work Time Pro</div>
 
 <div class="card">
 <div class="label">Ingresso</div>
@@ -131,17 +125,17 @@ button{
 </div>
 
 <div class="card">
-<div class="label">Uscite / Rientri</div>
+<div class="label">Uscite</div>
 <div id="breaks"></div>
-<button class="addBtn" onclick="addBreak()">+ Aggiungi pausa</button>
+<button onclick="addBreak()">+ Aggiungi pausa</button>
 </div>
 
-<div class="card">
+<div class="button">
 <button onclick="calcola()">Avvia</button>
 </div>
 
 <div class="card">
-<div class="label">Progresso giornata</div>
+<div class="label">Progresso</div>
 <div class="progress"><div class="bar" id="bar"></div></div>
 <div id="perc" class="small"></div>
 </div>
@@ -156,101 +150,68 @@ button{
 <div class="small" id="buonoCountdown"></div>
 </div>
 
-<div class="card">
-<div id="pranzo" class="small"></div>
-</div>
-<div class="footer">Sviluppato da Lorenzo Birindelli</div>
-
+<footer>Sviluppato da Lorenzo Birindelli</footer>
 
 </div>
-
 
 <script>
 function addBreak(){
-  const d=document.createElement("div");
-  d.className="row";
-  d.innerHTML=`<input type="time"><input type="time">`;
-  document.getElementById("breaks").appendChild(d);
+  const d=document.createElement("div");
+  d.className="row";
+  d.innerHTML=`<input type="time"><input type="time">`;
+  document.getElementById("breaks").appendChild(d);
 }
 
 function t2m(t){const[a,b]=t.split(":").map(Number);return a*60+b}
 function m2t(m){return String(Math.floor(m/60)).padStart(2,'0')+":"+String(m%60).padStart(2,'0')}
 
-
-let fineT=0,buonoT=0,nF=false,nB=false;
-
+let fineT=0,buonoT=0;
 
 function calcola(){
-  if(Notification.permission!=="granted") Notification.requestPermission();
+  const s=document.getElementById("startTime").value;
+  if(!s)return alert("Inserisci ora");
 
-  const s=document.getElementById("startTime").value;
-  if(!s) return alert("Inserisci ingresso");
+  let current=t2m(s);
+  let work=0;
 
+  document.querySelectorAll(".row").forEach(r=>{
+    let ex=r.children[0].value;
+    let en=r.children[1].value;
+    if(ex&&en){
+      let e=t2m(ex);
+      let ri=t2m(en);
+      if(e>current) work+=e-current;
+      current=ri;
+    }
+  });
 
-  let current=t2m(s);
-  let work=0;
-  let pausa=false;
+  fineT=current+(432-work);
+  buonoT=current+(372-work);
 
-  document.querySelectorAll(".row").forEach(r=>{
-    let ex=r.children[0].value;
-    let en=r.children[1].value;
+  document.getElementById("fine").innerText="Fine: "+m2t(fineT);
+  document.getElementById("buono").innerText="Buono: "+m2t(buonoT);
 
-
-    if(ex && en){
-      let e=t2m(ex);
-      let r2=t2m(en);
-
-
-      if(e>current) work+=e-current;
-
-
-      if((r2-e)>=30 && e>=720 && r2<=900) pausa=true;
-
-
-      current=r2;
-    }
-  });
-
-
-  let pausaAuto=pausa?0:30;
-
-  fineT=current+(432-work)+pausaAuto;
-  buonoT=current+(372-work);
-
-
-  document.getElementById("fine").innerText="Fine: "+m2t(fineT);
-  document.getElementById("buono").innerText="Buono: "+m2t(buonoT);
-  document.getElementById("pranzo").innerText= pausa?"✅ pausa ok":"⚠️ pausa automatica";
-
-
-  live();
+  live();
 }
 
 function live(){
-  setInterval(()=>{
-    let n=new Date();
-    let m=n.getHours()*60+n.getMinutes();
+  setInterval(()=>{
+    let n=new Date();
+    let m=n.getHours()*60+n.getMinutes();
 
+    let p=Math.min(100,(m/fineT)*100);
+    document.getElementById("bar").style.width=p+"%";
+    document.getElementById("perc").innerText="Progress: "+p.toFixed(1)+"%";
 
-    let p=Math.min(100,(m/fineT)*100);
-    document.getElementById("bar").style.width=p+"%";
-    document.getElementById("perc").innerText=p.toFixed(1)+"%";
+    let rf=fineT-m;
+    let rb=buonoT-m;
 
+    document.getElementById("fineCountdown").innerText = rf>0?"Fine tra "+m2t(rf):"✅ Fine";
+    document.getElementById("buonoCountdown").innerText = rb>0?"Buono tra "+m2t(rb):"🍽️ OK";
 
-    let rf=fineT-m;
-    let rb=buonoT-m;
-
-
-    document.getElementById("fineCountdown").innerText = rf>0?"tra "+m2t(rf):"fine raggiunta";
-    document.getElementById("buonoCountdown").innerText = rb>0?"tra "+m2t(rb):"buono attivo";
-
-
-    if(rb<=0 && !nB){nB=true;if(Notification.permission==='granted') new Notification('Buono maturato');}
-    if(rf<=0 && !nF){nF=true;if(Notification.permission==='granted') new Notification('Fine giornata');}
-
-
-  },1000);
+  },1000);
 }
 </script>
 
 </body>
+</html>
