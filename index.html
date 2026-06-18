@@ -3,473 +3,529 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
 <title>Work Time Tracker</title>
-
 <style>
-    *{
-        box-sizing:border-box;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
 
-    body{
-        margin:0;
-        font-family:Inter, Arial, sans-serif;
-        background:#0f172a;
-        color:white;
-        min-height:100vh;
-        padding:20px;
-    }
+  :root {
+    --bg:       #0c1117;
+    --surface:  #141b24;
+    --surface2: #1c2533;
+    --border:   rgba(255,255,255,0.07);
+    --amber:    #f59e0b;
+    --amber-dim:#92600a;
+    --cyan:     #22d3ee;
+    --red:      #ef4444;
+    --green:    #4ade80;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --radius:   20px;
+  }
 
-    .container{
-        max-width:900px;
-        margin:auto;
-    }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    h1{
-        margin-top:0;
-        font-size:32px;
-    }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+  }
 
-    .subtitle{
-        opacity:0.7;
-        margin-bottom:30px;
-    }
+  .container { max-width: 860px; margin: auto; }
 
-    .grid{
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-        gap:20px;
-    }
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
 
-    .card{
-        background:rgba(255,255,255,0.06);
-        border:1px solid rgba(255,255,255,0.08);
-        backdrop-filter: blur(10px);
-        border-radius:24px;
-        padding:20px;
-        transition:0.25s ease;
-        animation:fadeIn 0.4s ease;
-    }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
 
-    .card:hover{
-        transform:translateY(-3px);
-        border-color:#3b82f6;
-    }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.25);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
 
-    label{
-        display:block;
-        margin-bottom:10px;
-        font-weight:600;
-    }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
 
-    input[type="time"]{
-        width:100%;
-        padding:14px;
-        border:none;
-        border-radius:14px;
-        background:#1e293b;
-        color:white;
-        font-size:16px;
-    }
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 
-    button{
-        border:none;
-        background:#2563eb;
-        color:white;
-        padding:14px 18px;
-        border-radius:14px;
-        cursor:pointer;
-        font-weight:bold;
-        transition:0.2s ease;
-    }
+  @media (max-width: 620px) {
+    .layout { grid-template-columns: 1fr; }
+  }
 
-    button:hover{
-        transform:scale(1.03);
-        background:#3b82f6;
-    }
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
 
-    .danger{
-        background:#dc2626;
-    }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
 
-    .uscita{
-        margin-top:15px;
-        padding:15px;
-        background:#111827;
-        border-radius:16px;
-    }
+  /* ── Inputs ── */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
 
-    .uscita-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr auto;
-        gap:10px;
-        align-items:end;
-    }
+  input[type="time"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
 
-    .metric{
-        font-size:28px;
-        font-weight:bold;
-        margin-top:10px;
-    }
+  input[type="time"]:focus {
+    border-color: var(--amber);
+  }
 
-    .small{
-        opacity:0.7;
-        font-size:14px;
-    }
+  /* ── Buttons ── */
+  .btn {
+    border: none;
+    padding: 11px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    transition: opacity 0.15s, transform 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-    .progress-container{
-        width:100%;
-        height:24px;
-        background:#1e293b;
-        border-radius:999px;
-        overflow:hidden;
-        margin-top:20px;
-    }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
 
-    .progress-bar{
-        height:100%;
-        width:0%;
-        background:linear-gradient(90deg,#3b82f6,#06b6d4);
-        transition:width 1s linear;
-    }
+  .btn-primary { background: var(--amber); color: #0c1117; }
+  .btn-danger  { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
 
-    .warning{
-        color:#fca5a5;
-        font-weight:bold;
-    }
+  /* ── Pause entries ── */
+  #usciteContainer { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
 
-    .good{
-        color:#86efac;
-        font-weight:bold;
-    }
+  .pausa-row {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+    animation: slideIn 0.2s ease;
+  }
 
-    footer{
-        text-align:center;
-        margin-top:40px;
-        opacity:0.6;
-        font-size:14px;
-    }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-    @keyframes fadeIn{
-        from{
-            opacity:0;
-            transform:translateY(10px);
-        }
-        to{
-            opacity:1;
-            transform:translateY(0);
-        }
-    }
+  /* ── Circular progress (SVG) ── */
+  .ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 6px;
+  }
+
+  .ring-svg { width: 160px; height: 160px; }
+
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 10; }
+
+  .ring-fill {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 408;
+    stroke-dashoffset: 408;
+    transition: stroke-dashoffset 1s linear;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  .ring-center {
+    text-align: center;
+    margin-top: -8px;
+  }
+
+  .ring-pct {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ring-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Metric rows ── */
+  .metrics { display: flex; flex-direction: column; gap: 14px; }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .metric-key {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .metric-val {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+  }
+
+  .metric-val.amber { color: var(--amber); }
+  .metric-val.cyan  { color: var(--cyan); }
+  .metric-val.green { color: var(--green); }
+  .metric-val.red   { color: var(--red); }
+
+  /* ── Status banner ── */
+  .status-banner {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    display: none;
+  }
+
+  .status-banner.warn {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #fca5a5;
+    display: block;
+  }
+
+  .status-banner.ok {
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.2);
+    color: var(--green);
+    display: block;
+  }
+
+  /* ── Full-width bottom card ── */
+  .card-full { margin-top: 16px; }
+
+  .info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .info-chip {
+    flex: 1;
+    min-width: 180px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .info-chip .chip-label {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .info-chip .chip-val { font-weight: 600; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    margin-top: 44px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
 </style>
 </head>
-
 <body>
 
 <div class="container">
 
+  <div class="header">
     <h1>Work Time Tracker</h1>
+    <span class="badge">CNR · 7h 12m</span>
+  </div>
+  <p class="subtitle">Monitoraggio intelligente dell'orario lavorativo</p>
 
-    <div class="subtitle">
-        Monitoraggio intelligente dell'orario lavorativo
+  <div class="layout">
+
+    <!-- LEFT: input -->
+    <div class="card">
+      <div class="card-title">Orario di lavoro</div>
+
+      <label for="entrata">Ingresso</label>
+      <input type="time" id="entrata" />
+
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="aggiungiUscita()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Aggiungi pausa
+        </button>
+      </div>
+
+      <div id="usciteContainer"></div>
+
+      <div id="pausaStatus" class="status-banner"></div>
     </div>
 
-    <div class="grid">
+    <!-- RIGHT: progress ring + metrics -->
+    <div class="card">
+      <div class="card-title">Stato giornata</div>
 
-        <div class="card">
-
-            <label>Orario ingresso</label>
-
-            <input type="time" id="entrata">
-
-            <div style="margin-top:20px;">
-                <button onclick="aggiungiUscita()">
-                    + Aggiungi uscita
-                </button>
-            </div>
-
-            <div id="usciteContainer"></div>
-
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 130 130">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="65" cy="65" r="54"/>
+          <circle class="ring-fill" id="ringFill" cx="65" cy="65" r="54"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="ringPct">0%</div>
+          <div class="ring-label">completato</div>
         </div>
+      </div>
 
-        <div class="card">
-
-            <div class="small">Tempo lavorato</div>
-            <div class="metric" id="tempoLavorato">00:00</div>
-
-            <div class="small" style="margin-top:20px;">
-                Fine giornata
-            </div>
-
-            <div class="metric" id="fineGiornata">--:--</div>
-
-            <div class="small" style="margin-top:20px;">
-                Buono pasto
-            </div>
-
-            <div class="metric" id="buonoPasto">--:--</div>
-
+      <div class="metrics" style="margin-top:16px">
+        <div class="metric-row">
+          <span class="metric-key">⏱ Lavorato</span>
+          <span class="metric-val amber" id="tempoLavorato">00:00</span>
         </div>
-
-        <div class="card">
-
-            <div class="small">Countdown fine giornata</div>
-
-            <div class="metric" id="countdownFine">--:--</div>
-
-            <div class="small" style="margin-top:20px;">
-                Countdown buono pasto
-            </div>
-
-            <div class="metric" id="countdownBuono">--:--</div>
-
-            <div style="margin-top:20px;" id="uscitaOraMsg"></div>
-
+        <div class="metric-row">
+          <span class="metric-key">🏁 Fine giornata</span>
+          <span class="metric-val cyan" id="fineGiornata">--:--</span>
         </div>
-
+        <div class="metric-row">
+          <span class="metric-key">🎟 Buono pasto</span>
+          <span class="metric-val" id="buonoPasto">--:--</span>
+        </div>
+      </div>
     </div>
 
-    <div class="card" style="margin-top:20px;">
+  </div>
 
-        <div class="small">Progresso giornata</div>
-
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <div style="margin-top:12px;" id="progressText">
-            0%
-        </div>
-
-        <div style="margin-top:20px;" id="pausaInfo"></div>
-
+  <!-- Bottom: countdown chips + message -->
+  <div class="card card-full">
+    <div class="card-title">Countdown</div>
+    <div class="info-row">
+      <div class="info-chip">
+        <div class="chip-label">⌛ Alla fine giornata</div>
+        <div class="chip-val" id="countdownFine">--:--</div>
+      </div>
+      <div class="info-chip">
+        <div class="chip-label">🎟 Al buono pasto</div>
+        <div class="chip-val" id="countdownBuono">--:--</div>
+      </div>
+      <div class="info-chip">
+        <div class="chip-label">💡 Se esci ora</div>
+        <div class="chip-val" id="uscitaOraMsg">—</div>
+      </div>
     </div>
-
-    <footer>
-        Sviluppato da Lorenzo Birindelli
-    </footer>
+  </div>
 
 </div>
 
-<script>
+<footer>Sviluppato da Lorenzo Birindelli</footer>
 
+<script>
 const LAVORO_MIN = 7 * 60 + 12;
-const BUONO_MIN = 6 * 60;
+const BUONO_MIN  = 6 * 60;
+const CIRC = 2 * Math.PI * 54; // ~339.3
 
 let notificaBuono = false;
-let notificaFine = false;
+let notificaFine  = false;
 
-function timeToMinutes(time){
-
-    const [h,m] = time.split(":").map(Number);
-
-    return h * 60 + m;
+function timeToMin(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
 }
 
-function minutesToHHMM(min){
-
-    min = Math.floor(min);
-
-    let h = Math.floor(min / 60);
-    let m = min % 60;
-
-    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+function toHHMM(min) {
+  min = Math.max(0, Math.floor(min));
+  return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
 }
 
-function aggiungiUscita(){
-
-    const container = document.getElementById("usciteContainer");
-
-    const div = document.createElement("div");
-
-    div.className = "uscita";
-
-    div.innerHTML = `
-        <div class="uscita-grid">
-
-            <div>
-                <label>Uscita</label>
-                <input type="time" class="uscitaOra">
-            </div>
-
-            <div>
-                <label>Rientro</label>
-                <input type="time" class="rientroOra">
-            </div>
-
-            <button class="danger" onclick="this.parentElement.parentElement.remove()">
-                X
-            </button>
-
-        </div>
-    `;
-
-    container.appendChild(div);
+function aggiungiUscita() {
+  const container = document.getElementById('usciteContainer');
+  const div = document.createElement('div');
+  div.className = 'pausa-row';
+  div.innerHTML = `
+    <div>
+      <label>Uscita</label>
+      <input type="time" class="uscitaOra" />
+    </div>
+    <div>
+      <label>Rientro</label>
+      <input type="time" class="rientroOra" />
+    </div>
+    <button class="btn btn-danger" onclick="this.closest('.pausa-row').remove()" title="Rimuovi">
+      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  `;
+  container.appendChild(div);
 }
 
-function getPauseData(){
-
-    const uscite = document.querySelectorAll(".uscita");
-
-    let pauseTotali = 0;
-    let pausaPranzoValida = false;
-
-    uscite.forEach(el => {
-
-        const uscita = el.querySelector(".uscitaOra").value;
-        const rientro = el.querySelector(".rientroOra").value;
-
-        if(!uscita || !rientro) return;
-
-        const out = timeToMinutes(uscita);
-        const inn = timeToMinutes(rientro);
-
-        if(inn <= out) return;
-
-        const durata = inn - out;
-
-        pauseTotali += durata;
-
-        const inizioPranzo = 12 * 60;
-        const finePranzo = 15 * 60;
-
-        if(
-            out >= inizioPranzo &&
-            inn <= finePranzo &&
-            durata >= 30
-        ){
-            pausaPranzoValida = true;
-        }
-
-    });
-
-    return {
-        pauseTotali,
-        pausaPranzoValida
-    };
+function getPause() {
+  let totale = 0, pranzoOk = false;
+  document.querySelectorAll('.pausa-row').forEach(el => {
+    const u = el.querySelector('.uscitaOra').value;
+    const r = el.querySelector('.rientroOra').value;
+    if (!u || !r) return;
+    const out = timeToMin(u), inn = timeToMin(r);
+    if (inn <= out) return;
+    const dur = inn - out;
+    totale += dur;
+    if (out >= 12*60 && inn <= 15*60 && dur >= 30) pranzoOk = true;
+  });
+  return { totale, pranzoOk };
 }
 
-function aggiorna(){
+function aggiorna() {
+  const entrataVal = document.getElementById('entrata').value;
+  if (!entrataVal) return;
 
-    const entrata = document.getElementById("entrata").value;
+  const entrataMin = timeToMin(entrataVal);
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
 
-    if(!entrata) return;
+  const { totale: pauseTot, pranzoOk } = getPause();
+  const penalita = pranzoOk ? 0 : 30;
 
-    const entrataMin = timeToMinutes(entrata);
+  // Tempo effettivo lavorato = tempo trascorso - pause - penalità
+  const tempoLavorato = Math.max(0, nowMin - entrataMin - pauseTot - penalita);
 
-    const now = new Date();
+  // Fine giornata = entrata + 7h12 + pause + penalità
+  const fineMin  = entrataMin + LAVORO_MIN + pauseTot + penalita;
+  const buonoMin = entrataMin + BUONO_MIN  + pauseTot + penalita;
 
-    const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Update metrics
+  document.getElementById('tempoLavorato').textContent = toHHMM(tempoLavorato);
+  document.getElementById('fineGiornata').textContent  = toHHMM(fineMin);
 
-    const {
-        pauseTotali,
-        pausaPranzoValida
-    } = getPauseData();
+  const buonoEl = document.getElementById('buonoPasto');
+  buonoEl.textContent = toHHMM(buonoMin);
+  const buonoRag = nowMin >= buonoMin;
+  buonoEl.className = 'metric-val ' + (buonoRag ? 'green' : 'amber');
 
-    const penalitaFine = pausaPranzoValida ? 0 : 30;
+  // Countdowns
+  const cdFine  = fineMin  - nowMin;
+  const cdBuono = buonoMin - nowMin;
 
-    const penalitaBuono = pausaPranzoValida ? 0 : 30;
+  document.getElementById('countdownFine').textContent  = cdFine  > 0 ? toHHMM(cdFine)  : '✓ Completato';
+  document.getElementById('countdownBuono').textContent = cdBuono > 0 ? toHHMM(cdBuono) : '✓ Maturato';
 
-    let tempoLavorato =
-        nowMin - entrataMin - pauseTotali - penalitaFine;
+  // Se esci ora
+  const mancante = LAVORO_MIN - tempoLavorato;
+  const msg = document.getElementById('uscitaOraMsg');
+  if (mancante > 0) {
+    msg.textContent = '−' + toHHMM(mancante);
+    msg.style.color = 'var(--red)';
+  } else {
+    msg.textContent = 'Giornata completata ✓';
+    msg.style.color = 'var(--green)';
+  }
 
-    if(tempoLavorato < 0){
-        tempoLavorato = 0;
+  // Ring
+  const pct = Math.min((tempoLavorato / LAVORO_MIN) * 100, 100);
+  const offset = CIRC - (pct / 100) * CIRC;
+  document.getElementById('ringFill').style.strokeDashoffset = offset;
+  document.getElementById('ringPct').textContent = pct.toFixed(1) + '%';
+
+  // Pausa status
+  const statusEl = document.getElementById('pausaStatus');
+  if (pranzoOk) {
+    statusEl.className = 'status-banner ok';
+    statusEl.textContent = 'Pausa pranzo valida rilevata — nessuna penalità';
+  } else {
+    statusEl.className = 'status-banner warn';
+    statusEl.textContent = 'Nessuna pausa pranzo valida → +30 min aggiunti';
+  }
+
+  // Notifiche
+  if (Notification.permission === 'granted') {
+    if (cdBuono <= 0 && !notificaBuono) {
+      new Notification('🎟 Buono pasto maturato');
+      notificaBuono = true;
     }
-
-    const fineGiornataMin =
-        entrataMin +
-        LAVORO_MIN +
-        pauseTotali +
-        penalitaFine;
-
-    const buonoPastoMin =
-        entrataMin +
-        BUONO_MIN +
-        pauseTotali +
-        penalitaBuono;
-
-    document.getElementById("tempoLavorato").innerText =
-        minutesToHHMM(tempoLavorato);
-
-    document.getElementById("fineGiornata").innerText =
-        minutesToHHMM(fineGiornataMin);
-
-    document.getElementById("buonoPasto").innerText =
-        minutesToHHMM(buonoPastoMin);
-
-    const countdownFine = fineGiornataMin - nowMin;
-    const countdownBuono = buonoPastoMin - nowMin;
-
-    document.getElementById("countdownFine").innerText =
-        countdownFine > 0
-            ? minutesToHHMM(countdownFine)
-            : "COMPLETATO";
-
-    document.getElementById("countdownBuono").innerText =
-        countdownBuono > 0
-            ? minutesToHHMM(countdownBuono)
-            : "MATURATO";
-
-    const progress =
-        Math.min((tempoLavorato / LAVORO_MIN) * 100, 100);
-
-    document.getElementById("progressBar").style.width =
-        progress + "%";
-
-    document.getElementById("progressText").innerText =
-        progress.toFixed(1) + "% completato";
-
-    const mancante = LAVORO_MIN - tempoLavorato;
-
-    if(mancante > 0){
-
-        document.getElementById("uscitaOraMsg").innerHTML =
-            `<span class="warning">
-                Se esci ora perdi: ${minutesToHHMM(mancante)}
-            </span>`;
-
-    }else{
-
-        document.getElementById("uscitaOraMsg").innerHTML =
-            `<span class="good">
-                Hai completato la giornata
-            </span>`;
+    if (cdFine <= 0 && !notificaFine) {
+      new Notification('🏁 Giornata lavorativa completata');
+      notificaFine = true;
     }
-
-    document.getElementById("pausaInfo").innerHTML =
-        pausaPranzoValida
-        ? `<span class="good">
-            Pausa pranzo valida rilevata automaticamente
-           </span>`
-        : `<span class="warning">
-            Nessuna pausa pranzo valida → +30 min da recuperare
-           </span>`;
-
-    if(Notification.permission === "granted"){
-
-        if(countdownBuono <= 0 && !notificaBuono){
-
-            new Notification("Buono pasto maturato");
-
-            notificaBuono = true;
-        }
-
-        if(countdownFine <= 0 && !notificaFine){
-
-            new Notification("Giornata lavorativa completata");
-
-            notificaFine = true;
-        }
-    }
+  }
 }
+
+// Init ring dasharray
+document.getElementById('ringFill').style.strokeDasharray = CIRC;
+document.getElementById('ringFill').style.strokeDashoffset = CIRC;
 
 setInterval(aggiorna, 1000);
 
-if("Notification" in window){
-    Notification.requestPermission();
-}
-
+if ('Notification' in window) Notification.requestPermission();
 </script>
-
 </body>
 </html>
