@@ -134,14 +134,33 @@ await prova('il giorno dopo si riparte da zero', async () => {
   await ctx.close();
 });
 
-await prova('nessun overflow orizzontale su telefono piccolo', async () => {
-  const { ctx, page } = await nuovaPagina({ viewport: { width: 320, height: 640 } });
-  await page.fill('#ingresso', '08:10');
-  await page.click('#aggiungiPausa');
-  const w = await page.evaluate(() => document.documentElement.scrollWidth);
-  assert.ok(w <= 320, `larghezza ${w}`);
-  await ctx.close();
-});
+for (const larghezza of [320, 360]) {
+  await prova(`nessun overflow orizzontale a ${larghezza} px (anche a schermo intero e con le regole aperte)`, async () => {
+    const { ctx, page } = await nuovaPagina({ viewport: { width: larghezza, height: 640 } });
+    await page.fill('#ingresso', '08:10');
+    await page.click('#aggiungiPausa');
+    // nessun elemento deve uscire dallo schermo, nemmeno di una frazione di pixel
+    const fuori = () => page.evaluate((w) => {
+      const sporgenti = [...document.querySelectorAll('body *')].filter((e) => {
+        if (e.closest('.aurora') || getComputedStyle(e).position === 'fixed' || !e.getClientRects().length) return false;
+        if (e.closest('dialog') && !e.closest('dialog').open) return false;
+        const r = e.getBoundingClientRect();
+        return r.right > w + 0.01 || r.left < -0.01;
+      }).map((e) => e.tagName + (e.id ? '#' + e.id : '') + '.' + (e.className.baseVal ?? e.className));
+      return { larghezza: document.documentElement.scrollWidth, sporgenti: sporgenti.slice(0, 5) };
+    }, larghezza);
+    let r = await fuori();
+    assert.ok(r.larghezza <= larghezza && !r.sporgenti.length, JSON.stringify(r));
+    await page.evaluate(() => document.body.classList.add('intero'));
+    r = await fuori();
+    assert.ok(r.larghezza <= larghezza && !r.sporgenti.length, 'schermo intero: ' + JSON.stringify(r));
+    await page.evaluate(() => document.body.classList.remove('intero'));
+    await page.click('#btnRegole');
+    r = await fuori();
+    assert.ok(r.larghezza <= larghezza && !r.sporgenti.length, 'regole: ' + JSON.stringify(r));
+    await ctx.close();
+  });
+}
 
 // ─── Pulsante ePAS (bookmarklet) su pagine di prova con dati inventati ───
 const LETTORE = await readFile(join(RADICE, 'js/epas-lettore.js'), 'utf8');
@@ -232,6 +251,7 @@ if (SCREENSHOT) {
   const formati = [
     ['telefono', { ...devices['iPhone 13'] }],
     ['desktop', { viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 }],
+    ['telefono-piccolo-360x640', { viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }],
   ];
   for (const [nome, opz] of formati) {
     for (const tema of ['chiaro', 'scuro']) {

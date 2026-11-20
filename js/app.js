@@ -2,7 +2,7 @@
 // I dati (timbrature di oggi e regole) restano in localStorage su questo dispositivo.
 import { REGOLE_DEFAULT, calcolaGiornata, parseHHMM, parseDurata, fmtOra, fmtDurata, pad, dateKey } from './calc.js';
 
-const VERSIONE = '3.0.0';
+const VERSIONE = '3.0.1';
 const CHIAVE = 'calcolatore-orario';
 const CHIAVE_AVVISI = 'calcolatore-orario-avvisi';
 const $ = (s) => document.querySelector(s);

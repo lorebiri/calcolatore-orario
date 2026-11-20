@@ -240,3 +240,15 @@ textarea#codice {
   .vetro { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--vetro-forte); }
 }
 @media (forced-colors: active) { .arco-giornata, .arco-buono { stroke: CanvasText; } .aurora { display: none; } }
+
+/* ── Telefoni stretti (320–380 px): la testata deve stare in una riga senza scorrimento ── */
+.testata h1 { min-width: 0; }
+.testata h1 > span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 380px) {
+  .testata { padding-inline: 12px; gap: 8px; }
+  .contenitore, .piede { padding-inline: 12px; }
+  h1 { font-size: 1rem; gap: 8px; }
+  .logo { width: 24px; height: 24px; }
+  .testata-azioni { gap: 6px; }
+  .btn-icona { width: 42px; height: 42px; }
+}

@@ -1,6 +1,6 @@
 // Service worker: l'app funziona anche offline. Nessuna richiesta verso altri siti.
 // Strategia: risposta dalla cache se c'è, intanto si scarica la versione nuova per la prossima apertura.
-const CACHE = 'calcolatore-orario-v3.0.0';
+const CACHE = 'calcolatore-orario-v3.0.1';
 const FILE = [
   './',
   'index.html',
