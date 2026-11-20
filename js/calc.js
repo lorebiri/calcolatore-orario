@@ -1,10 +1,10 @@
 // Calcoli dell'orario di lavoro. Funzioni pure, senza DOM: usate dall'app e dai test.
 //
-// Regole (identiche alla versione 1, ora configurabili):
-// - ore da fare: 7h12m (432 min) di default;
-// - pausa pranzo "valida": uscita dalle 12:00 in poi, rientro entro le 15:00, durata >= 30 min;
-// - senza pausa pranzo valida si aggiungono 30 min (pausa obbligatoria dopo 6 ore);
-// - buono pasto: 6 ore di lavoro + pause (+30 min se manca la pausa pranzo valida).
+// Regole come le calcola ePAS (PersonDayManager.mealTicketHandlerAndDecurtedMeal), tipo orario "Normale":
+// - ore da fare: 7h12m (432 min);
+// - pausa pranzo: conta la PRIMA pausa che cade nella fascia 12:00–15:00, tagliata alla fascia;
+// - se è più corta di 30 minuti si aggiungono solo i minuti mancanti (30 − pausa);
+// - buono pasto: 6 ore di lavoro + pause + eventuali minuti mancanti di pausa pranzo.
 
 export const MINUTI_GIORNO = 1440;
 // Un orario prima dell'ingresso vale come "giorno dopo" solo se il turno resta entro 16 ore
@@ -79,12 +79,6 @@ export function atMinutes(key, min) {
   return new Date(y, m - 1, d, 0, min, 0, 0);
 }
 
-export function addDays(key, n) {
-  const d = parseKey(key);
-  d.setDate(d.getDate() + n);
-  return dateKey(d);
-}
-
 export function oreDelGiorno(key, regole) {
   return regole.ore[parseKey(key).getDay()] ?? 0;
 }
@@ -139,9 +133,9 @@ export function calcolaGiornata(giorno, key, regole = REGOLE_DEFAULT, adesso = n
 
   let pauseTot = 0;        // minuti di pausa usati per le previsioni
   let pauseFatte = 0;      // minuti di pausa dentro il periodo [ingresso, fine]
-  let pranzoOk = false;
   let inCorso = null;
   const dettPause = [];
+  const intervalli = []; // pause valide in minuti di orologio, per la pausa pranzo
 
   (giorno?.pause ?? []).forEach((p, i) => {
     const uStr = p?.uscita ?? '', rStr = p?.rientro ?? '';
@@ -156,7 +150,8 @@ export function calcolaGiornata(giorno, key, regole = REGOLE_DEFAULT, adesso = n
         const dur = fineRel - u;
         pauseTot += dur;
         pauseFatte += dur;
-        inCorso = { indice: i, da: uw, durata: dur, inFinestra: (uw % MINUTI_GIORNO) >= r.finestraDa };
+        inCorso = { indice: i, da: uw, durata: dur };
+        intervalli.push({ i, da: uw, a: uw + dur });
         dettPause.push({ durata: dur, aperta: true });
       } else {
         if (chiusa) errori.push({ campo: 'pausa', indice: i, msg: "Manca l'ora di rientro della pausa" });
@@ -174,24 +169,24 @@ export function calcolaGiornata(giorno, key, regole = REGOLE_DEFAULT, adesso = n
     const dur = rr - u;
     pauseTot += dur;
     pauseFatte += Math.max(0, Math.min(rr, fineRel) - Math.max(u, 0));
-    const valida = uw >= r.finestraDa && rw <= r.finestraA && (rw - uw) >= r.pausaMin;
-    if (valida) pranzoOk = true;
-    dettPause.push({ durata: dur, pranzo: valida });
+    intervalli.push({ i, da: uw, a: rw });
+    dettPause.push({ durata: dur });
   });
 
-  // minuti da aggiungere se manca la pausa pranzo valida.
-  // Se c'è una pausa in corso iniziata nella finestra, conta già come pranzo "in corso".
-  let mancaPausa = pranzoOk ? 0 : r.pausaMin;
-  if (!pranzoOk && inCorso && inCorso.inFinestra) {
-    mancaPausa = Math.max(0, r.pausaMin - inCorso.durata);
-  }
+  // Pausa pranzo come in ePAS: la prima pausa che tocca la fascia, con gli estremi tagliati alla fascia.
+  intervalli.sort((x, y) => x.da - y.da);
+  const pranzo = intervalli.find((x) => !(x.a < r.finestraDa || x.da > r.finestraA));
+  const pausaPranzo = pranzo ? Math.min(pranzo.a, r.finestraA) - Math.max(pranzo.da, r.finestraDa) : 0;
+  if (pranzo && dettPause[pranzo.i]) dettPause[pranzo.i].pranzo = pausaPranzo;
+  // minuti mancanti alla pausa minima (in ePAS: "toCut", poi "decurtedMeal")
+  const mancaPausa = Math.max(0, r.pausaMin - pausaPranzo);
+  const pranzoOk = mancaPausa === 0;
   const richiedePausa = ore > r.soglia;
   const penalita = richiedePausa ? mancaPausa : 0;
 
-  // lavorato: tempo trascorso meno pause; oltre la soglia, se manca la pausa pranzo valida,
-  // si tolgono i minuti di pausa obbligatoria (mai sotto la soglia).
+  // lavorato come ePAS: i minuti mancanti si tolgono solo se, tolti, resta il buono pasto
   const netto = Math.max(0, fineRel - pauseFatte);
-  const lavorato = (!pranzoOk && netto > r.soglia) ? Math.max(r.soglia, netto - r.pausaMin) : netto;
+  const lavorato = netto - mancaPausa >= r.soglia ? netto - mancaPausa : netto;
 
   const fineRelPrev = ore + pauseTot + penalita;
   const buonoRel = r.soglia + pauseTot + mancaPausa;
@@ -206,6 +201,8 @@ export function calcolaGiornata(giorno, key, regole = REGOLE_DEFAULT, adesso = n
     lavorato,
     pauseTot,
     pranzoOk,
+    pausaPranzo,
+    mancaPausa,
     penalita,
     richiedePausa,
     inCorso,
@@ -220,71 +217,4 @@ export function calcolaGiornata(giorno, key, regole = REGOLE_DEFAULT, adesso = n
     pause: dettPause,
     errori,
   };
-}
-
-// Inizio settimana (lunedì) della data key
-export function lunedi(key) {
-  const d = parseKey(key);
-  const dow = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - dow);
-  return dateKey(d);
-}
-
-/**
- * Riepilogo di un intervallo di giorni [da, a] (chiavi incluse).
- * Contano solo i giorni con un ingresso registrato: i giorni vuoti (ferie, weekend…) non fanno debito.
- * Il saldo considera solo le giornate chiuse (con l'uscita); quella in corso conta nel lavorato e nel dovuto.
- */
-export function riepilogo(giorni, da, a, regole = REGOLE_DEFAULT, adesso = new Date()) {
-  let lavorato = 0, dovuto = 0, saldo = 0, buoni = 0, giorniLav = 0, aperti = 0;
-  const righe = [];
-  for (const key of Object.keys(giorni).sort()) {
-    if (key < da || key > a) continue;
-    const c = calcolaGiornata(giorni[key], key, regole, adesso);
-    if (c.stato === 'vuoto') continue;
-    righe.push({ key, giorno: giorni[key], calc: c });
-    giorniLav++;
-    if (c.stato === 'scaduta' || c.stato === 'futuro') { aperti++; continue; }
-    lavorato += c.lavorato;
-    dovuto += c.ore;
-    if (c.stato === 'chiusa') {
-      saldo += c.saldo;
-      if (c.buonoMaturato) buoni++;
-    } else {
-      aperti++; // giornata in corso: conta nel lavorato, non ancora nel saldo
-    }
-  }
-  return { lavorato, dovuto, saldo, buoni, giorni: giorniLav, aperti, righe };
-}
-
-function csvCampo(v) {
-  const s = String(v ?? '');
-  return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-
-// CSV con separatore ";" (si apre direttamente con Excel in italiano)
-export function esportaCSV(giorni, da, a, regole = REGOLE_DEFAULT, adesso = new Date()) {
-  const intest = ['Data', 'Giorno', 'Ingresso', 'Pause', 'Uscita', 'Pause (h:mm)', 'Lavorato (h:mm)', 'Dovuto (h:mm)', 'Saldo (h:mm)', 'Buono pasto', 'Note'];
-  const out = [intest.join(';')];
-  const { righe } = riepilogo(giorni, da, a, regole, adesso);
-  for (const { key, giorno, calc } of righe) {
-    const pause = (giorno.pause ?? []).filter(p => p.uscita || p.rientro).map(p => `${p.uscita || '?'}-${p.rientro || '?'}`).join(' ');
-    const chiusa = calc.stato === 'chiusa';
-    out.push([
-      key.split('-').reverse().join('/'),
-      GIORNI[parseKey(key).getDay()],
-      giorno.ingresso || '',
-      pause,
-      giorno.uscita || '',
-      fmtDurata(calc.pauseTot ?? 0),
-      chiusa ? fmtDurata(calc.lavorato) : '',
-      fmtDurata(calc.ore),
-      chiusa ? fmtSaldo(calc.saldo) : '',
-      chiusa ? (calc.buonoMaturato ? 'sì' : 'no') : '',
-      giorno.nota || '',
-    ].map(csvCampo).join(';'));
-  }
-  return '﻿' + out.join('\r\n') + '\r\n';
 }

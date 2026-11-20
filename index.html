@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calcolatore orario</title>
-<meta name="description" content="Calcola a che ora puoi uscire, quando maturi il buono pasto e il saldo delle ore. I dati restano sul tuo dispositivo.">
+<meta name="description" content="A che ora matura la giornata e a che ora matura il buono pasto, con le regole di ePAS. I dati restano sul tuo dispositivo.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0c1117" media="(prefers-color-scheme: dark)">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
@@ -19,242 +19,123 @@
 <script type="module" src="js/app.js"></script>
 </head>
 <body>
-<a class="salta" href="#principale">Vai al contenuto</a>
 
 <header class="testata">
-  <div class="testata-titolo">
+  <h1>
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M16 3a13 13 0 0 1 12.4 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 9v7l4.5 3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <h1>Calcolatore orario</h1>
+    Calcolatore orario
+  </h1>
+  <div class="testata-azioni">
+    <button type="button" class="btn-icona" id="btnTema" aria-label="Cambia tema">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor"/></svg>
+    </button>
+    <button type="button" class="btn-icona" id="btnRegole" aria-label="Regole e impostazioni" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="10" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+    </button>
   </div>
-  <button type="button" class="btn-icona" id="btnTema" aria-label="Tema: automatico">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor"/></svg>
-  </button>
 </header>
 
-<nav class="schede-nav" aria-label="Sezioni">
-<div class="schede" role="tablist" aria-label="Sezioni">
-  <button type="button" role="tab" id="tab-oggi" aria-controls="vista-oggi" aria-selected="true">Giornata</button>
-  <button type="button" role="tab" id="tab-storico" aria-controls="vista-storico" aria-selected="false" tabindex="-1">Storico</button>
-  <button type="button" role="tab" id="tab-impostazioni" aria-controls="vista-impostazioni" aria-selected="false" tabindex="-1">Impostazioni</button>
-</div>
-</nav>
+<main class="contenitore">
 
-<main id="principale" tabindex="-1">
-
-<!-- ═══════════════ GIORNATA ═══════════════ -->
-<section id="vista-oggi" role="tabpanel" aria-labelledby="tab-oggi" class="vista">
-
-  <div class="navdata">
-    <button type="button" class="btn-icona" id="giornoPrec" aria-label="Giorno precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <div class="navdata-centro">
-      <h2 id="titoloGiorno">Oggi</h2>
-      <button type="button" class="link" id="vaiOggi" hidden>Torna a oggi</button>
-    </div>
-    <button type="button" class="btn-icona" id="giornoSucc" aria-label="Giorno successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  </div>
-
-  <div class="griglia">
-
-    <!-- Riepilogo principale -->
-    <article class="card hero" aria-labelledby="heroTitolo">
-      <div class="anello" aria-hidden="true">
-        <svg viewBox="0 0 120 120">
-          <defs>
-            <linearGradient id="gradAnello" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="var(--accento)"/>
-              <stop offset="1" stop-color="var(--accento2)"/>
-            </linearGradient>
-          </defs>
-          <circle class="anello-sfondo" cx="60" cy="60" r="52"/>
-          <circle class="anello-valore" id="anello" cx="60" cy="60" r="52" pathLength="100"/>
-        </svg>
-        <div class="anello-testo"><span id="perc">0</span><small>%</small></div>
-      </div>
-      <div class="hero-testo">
-        <p class="hero-etichetta" id="heroEtichetta">Puoi uscire alle</p>
-        <p class="hero-ora" id="heroTitolo">--:--</p>
-        <p class="hero-sotto" id="heroSotto">Inserisci l'ora di ingresso</p>
-      </div>
+  <!-- I due risultati -->
+  <section class="risultati" aria-label="Risultati">
+    <article class="risultato" id="rGiornata">
+      <h2>Giornata maturata alle</h2>
+      <p class="ora" id="oraGiornata">--:--</p>
+      <p class="quando" id="traGiornata">Inserisci l'ingresso</p>
+      <div class="barra" aria-hidden="true"><i id="barraGiornata"></i></div>
     </article>
-
-    <!-- Timbrature -->
-    <article class="card card-timbrature" aria-labelledby="titTimbrature">
-      <div class="card-testa">
-        <h3 id="titTimbrature">Timbrature</h3>
-      </div>
-
-      <div class="azioni-rapide" id="azioniRapide"></div>
-
-      <div class="campo-ora">
-        <label for="ingresso">Ingresso</label>
-        <div class="riga-input">
-          <input type="time" id="ingresso" step="60">
-          <button type="button" class="btn-adesso" data-adesso="ingresso" aria-label="Ingresso: adesso">Adesso</button>
-        </div>
-      </div>
-
-      <ol class="lista-pause" id="listaPause" aria-label="Pause"></ol>
-
-      <button type="button" class="btn btn-secondario" id="aggiungiPausa">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-        Aggiungi pausa
-      </button>
-
-      <div class="campo-ora">
-        <label for="uscita">Uscita <span class="facoltativo">(a fine giornata)</span></label>
-        <div class="riga-input">
-          <input type="time" id="uscita" step="60">
-          <button type="button" class="btn-adesso" data-adesso="uscita" aria-label="Uscita: adesso">Adesso</button>
-        </div>
-      </div>
-
-      <p class="avviso" id="avvisoPausa" role="status"></p>
-      <div role="alert"><ul class="errori" id="errori"></ul></div>
-
-      <details class="dettagli-giorno">
-        <summary>Ore da fare e note per questo giorno</summary>
-        <div class="campo-ora">
-          <label for="oreGiorno">Ore da fare</label>
-          <input type="text" id="oreGiorno" inputmode="decimal" autocomplete="off" placeholder="7:12" aria-describedby="oreGiornoAiuto">
-          <p class="aiuto" id="oreGiornoAiuto">Lascia vuoto per usare le impostazioni. Utile per permessi o giornate corte.</p>
-        </div>
-        <div class="campo-ora">
-          <label for="nota">Nota</label>
-          <input type="text" id="nota" maxlength="120" autocomplete="off" placeholder="es. smart working, permesso…">
-        </div>
-        <button type="button" class="btn btn-pericolo" id="svuotaGiorno">Svuota questo giorno</button>
-      </details>
+    <article class="risultato" id="rBuono">
+      <h2>Buono pasto alle</h2>
+      <p class="ora" id="oraBuono">--:--</p>
+      <p class="quando" id="traBuono">&nbsp;</p>
+      <div class="barra" aria-hidden="true"><i id="barraBuono"></i></div>
     </article>
+  </section>
 
-    <!-- Dettagli -->
-    <article class="card card-dettagli" aria-labelledby="titDettagli">
-      <h3 id="titDettagli">Dettagli</h3>
-      <dl class="metriche">
-        <div><dt>Lavorato</dt><dd id="mLavorato">0:00</dd></div>
-        <div><dt>Ore da fare</dt><dd id="mOre">7:12</dd></div>
-        <div><dt>Fine giornata</dt><dd id="mFine" class="accento2">--:--</dd></div>
-        <div><dt id="mBuonoEt">Buono pasto</dt><dd id="mBuono">--:--</dd></div>
-        <div><dt>Pause</dt><dd id="mPause">0:00</dd></div>
-        <div><dt id="mSaldoEt">Se esci ora</dt><dd id="mSaldo">—</dd></div>
-      </dl>
-    </article>
+  <!-- Timbrature -->
+  <section class="card" aria-labelledby="titTimbrature">
+    <h2 class="titoletto" id="titTimbrature">Timbrature di oggi</h2>
 
-    <!-- Settimana e mese -->
-    <article class="card card-periodo" aria-labelledby="titPeriodo">
-      <h3 id="titPeriodo">Settimana e mese</h3>
-      <dl class="metriche">
-        <div><dt>Settimana lavorato</dt><dd id="sLavorato">0:00</dd></div>
-        <div><dt>Settimana da fare</dt><dd id="sDovuto">0:00</dd></div>
-        <div><dt>Saldo settimana</dt><dd id="sSaldo">0:00</dd></div>
-        <div><dt>Saldo mese</dt><dd id="meseSaldo">0:00</dd></div>
-      </dl>
-      <p class="aiuto">I saldi contano le giornate con l'uscita inserita.</p>
-    </article>
+    <div class="azione-rapida" id="azioneRapida"></div>
 
-  </div>
-</section>
-
-<!-- ═══════════════ STORICO ═══════════════ -->
-<section id="vista-storico" role="tabpanel" aria-labelledby="tab-storico" class="vista" hidden>
-  <div class="navdata">
-    <button type="button" class="btn-icona" id="mesePrec" aria-label="Mese precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <div class="navdata-centro"><h2 id="titoloMese">Mese</h2></div>
-    <button type="button" class="btn-icona" id="meseSucc" aria-label="Mese successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  </div>
-
-  <div class="card">
-    <dl class="metriche quattro">
-      <div><dt>Giorni</dt><dd id="stGiorni">0</dd></div>
-      <div><dt>Lavorato</dt><dd id="stLavorato">0:00</dd></div>
-      <div><dt>Saldo</dt><dd id="stSaldo">0:00</dd></div>
-      <div><dt>Buoni pasto</dt><dd id="stBuoni">0</dd></div>
-    </dl>
-  </div>
-
-  <div class="card">
-    <table class="tabella">
-      <caption class="vh">Giornate del mese</caption>
-      <thead><tr><th scope="col">Giorno</th><th scope="col">Orario</th><th scope="col">Lavorato</th><th scope="col">Saldo</th></tr></thead>
-      <tbody id="righeStorico"></tbody>
-    </table>
-    <p class="vuoto" id="storicoVuoto">Nessuna giornata registrata in questo mese.</p>
-  </div>
-
-  <div class="card">
-    <h3>Esporta e backup</h3>
-    <p class="aiuto">I dati sono salvati solo su questo dispositivo, nel browser. Fai un backup ogni tanto: se cancelli i dati del browser o cambi telefono li perdi.</p>
-    <div class="bottoni">
-      <button type="button" class="btn btn-secondario" id="esportaCSV">Esporta mese (CSV)</button>
-      <button type="button" class="btn btn-secondario" id="esportaBackup">Salva backup</button>
-      <label class="btn btn-secondario" for="importaBackup">Ripristina backup</label>
-      <input type="file" id="importaBackup" accept="application/json,.json" class="vh">
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ IMPOSTAZIONI ═══════════════ -->
-<section id="vista-impostazioni" role="tabpanel" aria-labelledby="tab-impostazioni" class="vista" hidden>
-  <h2 class="vh">Impostazioni</h2>
-  <form class="card" id="formImpostazioni" novalidate>
-    <h3>Ore da fare</h3>
-    <p class="aiuto">Formato ore:minuti, es. 7:12. Metti 0 nei giorni non lavorativi.</p>
-    <div class="griglia-giorni" id="oreSettimana"></div>
-
-    <h3>Pausa pranzo e buono pasto</h3>
-    <div class="griglia-campi">
-      <div class="campo-ora">
-        <label for="impSoglia">Buono pasto e pausa obbligatoria dopo</label>
-        <input type="text" id="impSoglia" inputmode="decimal" autocomplete="off">
-      </div>
-      <div class="campo-ora">
-        <label for="impPausa">Pausa minima (minuti)</label>
-        <input type="number" id="impPausa" min="0" max="180" step="1" inputmode="numeric">
-      </div>
-      <div class="campo-ora">
-        <label for="impDa">Pausa pranzo valida dalle</label>
-        <input type="time" id="impDa" step="60">
-      </div>
-      <div class="campo-ora">
-        <label for="impA">alle</label>
-        <input type="time" id="impA" step="60">
+    <div class="campo">
+      <label for="ingresso">Ingresso</label>
+      <div class="riga-input">
+        <input type="time" id="ingresso" step="60">
+        <button type="button" class="btn-adesso" id="ingressoAdesso" aria-label="Ingresso: adesso">Adesso</button>
       </div>
     </div>
-    <p class="aiuto">Se non c'è una pausa pranzo valida (dentro la fascia e lunga almeno la pausa minima) vengono aggiunti i minuti di pausa minima, come nella versione precedente.</p>
-    <p class="errori" id="erroriImpostazioni" role="alert"></p>
 
-    <div class="bottoni">
-      <button type="submit" class="btn btn-primario">Salva impostazioni</button>
-      <button type="button" class="btn btn-secondario" id="impDefault">Valori iniziali (CNR 7:12)</button>
-    </div>
-  </form>
+    <ol class="lista-pause" id="listaPause" aria-label="Pause"></ol>
 
-  <div class="card">
-    <h3>Aspetto e avvisi</h3>
-    <fieldset class="scelta">
-      <legend>Tema</legend>
-      <label><input type="radio" name="tema" value="auto"> Automatico</label>
-      <label><input type="radio" name="tema" value="chiaro"> Chiaro</label>
-      <label><input type="radio" name="tema" value="scuro"> Scuro</label>
-    </fieldset>
-    <div class="interruttore">
-      <input type="checkbox" id="impNotifiche" role="switch">
-      <label for="impNotifiche">Avvisami quando matura il buono pasto e quando posso uscire</label>
-    </div>
-    <p class="aiuto" id="notificheInfo">Funziona finché l'app è aperta (anche in secondo piano).</p>
-  </div>
+    <button type="button" class="btn btn-secondario" id="aggiungiPausa">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      Aggiungi pausa
+    </button>
 
-  <div class="card">
-    <h3>Dati</h3>
-    <p class="aiuto">Nessun dato lascia il dispositivo: niente account, niente server, niente statistiche.</p>
-    <button type="button" class="btn btn-pericolo" id="cancellaTutto">Cancella tutti i dati</button>
-  </div>
-</section>
+    <p class="avviso" id="avvisoPausa" role="status"></p>
+    <div role="alert"><ul class="errori" id="errori"></ul></div>
 
+    <button type="button" class="link" id="azzera">Azzera la giornata</button>
+  </section>
+
+  <p class="nota-regole" id="notaRegole"></p>
 </main>
 
 <footer class="piede">
   <p>Sviluppato da Lorenzo Birindelli · <span id="versione">v2</span></p>
+  <p>I dati restano su questo dispositivo.</p>
 </footer>
+
+<!-- Regole e impostazioni -->
+<dialog id="dlgRegole" aria-labelledby="titRegole">
+  <form method="dialog" id="formRegole" novalidate>
+    <div class="dlg-testa">
+      <h2 id="titRegole">Regole</h2>
+      <button type="submit" value="chiudi" class="btn-icona" aria-label="Chiudi" formnovalidate>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p class="aiuto">Valori iniziali: tipo orario «Normale» di ePAS (CNR).</p>
+
+    <div class="griglia-campi">
+      <div class="campo">
+        <label for="impOre">Ore da fare</label>
+        <input type="text" id="impOre" inputmode="decimal" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="impSoglia">Buono pasto dopo</label>
+        <input type="text" id="impSoglia" inputmode="decimal" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="impPausa">Pausa minima (min)</label>
+        <input type="number" id="impPausa" min="0" max="180" step="1" inputmode="numeric">
+      </div>
+      <div class="campo">
+        <label for="impDa">Fascia pranzo dalle</label>
+        <input type="time" id="impDa" step="60">
+      </div>
+      <div class="campo">
+        <label for="impA">alle</label>
+        <input type="time" id="impA" step="60">
+      </div>
+    </div>
+    <p class="aiuto">Come in ePAS: vale la prima pausa che cade nella fascia (tagliata alla fascia). Se è più corta della pausa minima, si aggiungono i minuti che mancano.</p>
+    <p class="errori" id="erroriRegole" role="alert"></p>
+
+    <div class="interruttore">
+      <input type="checkbox" id="impNotifiche" role="switch">
+      <label for="impNotifiche">Avvisami quando matura il buono pasto e la giornata</label>
+    </div>
+    <p class="aiuto" id="notificheInfo">Funziona finché l'app è aperta (anche in secondo piano).</p>
+
+    <div class="bottoni">
+      <button type="submit" value="salva" class="btn btn-primario">Salva</button>
+      <button type="button" class="btn btn-secondario" id="regoleDefault">Valori ePAS</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>

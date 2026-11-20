@@ -46,70 +46,75 @@ async function nuovaPagina(opz = {}, ora = '2026-11-20T13:05:00') {
 
 const testoDi = (page, sel) => page.locator(sel).textContent();
 
-await prova('giornata tipo: stessi risultati della v1 (uscita 15:52, buono 14:40)', async () => {
+await prova('giornata tipo: uscita 15:52 e buono pasto 14:40, dati salvati', async () => {
   const { ctx, page, errori } = await nuovaPagina();
   await page.fill('#ingresso', '08:10');
   await page.click('#aggiungiPausa');
-  await page.fill('#pausa-u-0', '12:30');
-  await page.fill('#pausa-r-0', '13:00');
-  assert.equal(await testoDi(page, '#heroTitolo'), '15:52');
-  assert.equal(await testoDi(page, '#mBuono'), '14:40');
-  assert.equal(await testoDi(page, '#mLavorato'), '4:25');
-  assert.match(await testoDi(page, '#heroSotto'), /Mancano 2:47/);
-  assert.match(await testoDi(page, '#avvisoPausa'), /valida/);
-  // i dati restano dopo il ricaricamento
+  await page.fill('#pausa-uscita-0', '12:30');
+  await page.fill('#pausa-rientro-0', '13:00');
+  assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
+  assert.equal(await testoDi(page, '#oraBuono'), '14:40');
+  assert.equal(await testoDi(page, '#traGiornata'), 'tra 2:47');
+  assert.equal(await testoDi(page, '#traBuono'), 'tra 1:35');
+  assert.match(await testoDi(page, '#avvisoPausa'), /nessun minuto aggiunto/);
   await page.reload();
   assert.equal(await page.inputValue('#ingresso'), '08:10');
-  assert.equal(await page.inputValue('#pausa-r-0'), '13:00');
-  assert.equal(await testoDi(page, '#heroTitolo'), '15:52');
+  assert.equal(await page.inputValue('#pausa-rientro-0'), '13:00');
+  assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
   assert.deepEqual(errori, []);
   await ctx.close();
 });
 
-await prova('pulsanti rapidi: ingresso, pausa, rientro, uscita', async () => {
+await prova('regola ePAS: pausa pranzo di 20 minuti → si aggiungono solo 10 minuti', async () => {
+  const { ctx, page } = await nuovaPagina();
+  await page.fill('#ingresso', '08:10');
+  await page.click('#aggiungiPausa');
+  await page.fill('#pausa-uscita-0', '12:30');
+  await page.fill('#pausa-rientro-0', '12:50');
+  assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
+  assert.equal(await testoDi(page, '#oraBuono'), '14:40');
+  assert.match(await testoDi(page, '#avvisoPausa'), /aggiunti 10 min/);
+  await ctx.close();
+});
+
+await prova('pulsanti rapidi: ingresso, pausa, rientro; giornata e buono maturati', async () => {
   const { ctx, page, errori } = await nuovaPagina({}, '2026-11-20T08:00:00');
-  await page.getByRole('button', { name: 'Timbra ingresso' }).click();
+  await page.getByRole('button', { name: 'Timbra ingresso adesso' }).click();
   assert.equal(await page.inputValue('#ingresso'), '08:00');
   await page.clock.fastForward('04:30:00');
-  await page.getByRole('button', { name: 'Vado in pausa' }).click();
-  assert.equal(await page.inputValue('#pausa-u-0'), '12:30');
+  await page.getByRole('button', { name: 'Vado in pausa adesso' }).click();
+  assert.equal(await page.inputValue('#pausa-uscita-0'), '12:30');
   await page.clock.fastForward('00:40:00');
-  assert.match(await testoDi(page, '#heroSotto'), /In pausa da 0:40/);
-  await page.getByRole('button', { name: 'Rientro dalla pausa' }).click();
-  assert.equal(await page.inputValue('#pausa-r-0'), '13:10');
-  assert.equal(await testoDi(page, '#heroTitolo'), '15:52');
+  await page.getByRole('button', { name: 'Rientro dalla pausa adesso' }).click();
+  assert.equal(await page.inputValue('#pausa-rientro-0'), '13:10');
+  assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
+  assert.equal(await testoDi(page, '#oraBuono'), '14:40');
   await page.clock.fastForward('03:00:00');
-  await page.getByRole('button', { name: 'Esco adesso' }).click();
-  assert.equal(await page.inputValue('#uscita'), '16:10');
-  assert.equal(await testoDi(page, '#heroTitolo'), '7:30');
-  assert.equal(await testoDi(page, '#mSaldo'), '+0:18');
+  assert.match(await testoDi(page, '#traGiornata'), /Maturata/);
+  assert.match(await testoDi(page, '#traBuono'), /Maturato/);
   assert.deepEqual(errori, []);
   await ctx.close();
 });
 
-await prova('storico, impostazioni e CSV', async () => {
+await prova('regole: ore da fare 6:00', async () => {
   const { ctx, page, errori } = await nuovaPagina();
-  await page.evaluate(() => localStorage.setItem('calcolatore-orario', JSON.stringify({
-    giorni: {
-      '2026-11-16': { ingresso: '08:00', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '16:00' },
-      '2026-11-17': { ingresso: '08:05', pause: [{ uscita: '12:45', rientro: '13:20' }], uscita: '15:50', nota: 'riunione' },
-      '2026-11-18': { ingresso: '07:55', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '15:20' },
-    },
-  })));
-  await page.reload();
-  await page.getByRole('tab', { name: 'Storico' }).click();
-  assert.equal(await testoDi(page, '#stGiorni'), '3');
-  assert.equal(await page.locator('#righeStorico tr').count(), 3);
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#esportaCSV')]);
-  assert.equal(dl.suggestedFilename(), 'orario-2026-11.csv');
-  await page.getByRole('tab', { name: 'Impostazioni' }).click();
-  await page.fill('#ore-5', '6:00');
-  await page.click('text=Salva impostazioni');
-  await page.getByRole('tab', { name: 'Giornata' }).click();
+  await page.click('#btnRegole');
+  await page.fill('#impOre', '6:00');
+  await page.getByRole('button', { name: 'Salva' }).click();
   await page.fill('#ingresso', '08:00');
-  assert.equal(await testoDi(page, '#mOre'), '6:00');
-  assert.equal(await testoDi(page, '#heroTitolo'), '14:00');
+  assert.equal(await testoDi(page, '#oraGiornata'), '14:00');
+  assert.equal(await testoDi(page, '#oraBuono'), '14:30');
+  assert.match(await testoDi(page, '#notaRegole'), /personalizzate/);
   assert.deepEqual(errori, []);
+  await ctx.close();
+});
+
+await prova('il giorno dopo si riparte da zero', async () => {
+  const { ctx, page } = await nuovaPagina();
+  await page.evaluate(() => localStorage.setItem('calcolatore-orario', JSON.stringify({ giorno: { data: '2026-11-19', ingresso: '08:00', pause: [] } })));
+  await page.reload();
+  assert.equal(await page.inputValue('#ingresso'), '');
+  assert.equal(await testoDi(page, '#oraGiornata'), '--:--');
   await ctx.close();
 });
 
@@ -117,24 +122,13 @@ await prova('nessun overflow orizzontale su telefono piccolo', async () => {
   const { ctx, page } = await nuovaPagina({ viewport: { width: 320, height: 640 } });
   await page.fill('#ingresso', '08:10');
   await page.click('#aggiungiPausa');
-  for (const tab of ['Giornata', 'Storico', 'Impostazioni']) {
-    await page.getByRole('tab', { name: tab }).click();
-    const w = await page.evaluate(() => document.documentElement.scrollWidth);
-    assert.ok(w <= 320, `${tab}: larghezza ${w}`);
-  }
+  const w = await page.evaluate(() => document.documentElement.scrollWidth);
+  assert.ok(w <= 320, `larghezza ${w}`);
   await ctx.close();
 });
 
 if (SCREENSHOT) {
-  const dati = {
-    giorni: {
-      '2026-11-16': { ingresso: '08:02', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '16:10' },
-      '2026-11-17': { ingresso: '08:15', pause: [{ uscita: '12:45', rientro: '13:20' }], uscita: '15:50', nota: 'riunione' },
-      '2026-11-18': { ingresso: '07:55', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '15:20' },
-      '2026-11-19': { ingresso: '08:00', pause: [{ uscita: '12:30', rientro: '13:05' }], uscita: '15:47' },
-      '2026-11-20': { ingresso: '08:10', pause: [{ uscita: '10:30', rientro: '10:40' }, { uscita: '12:30', rientro: '13:00' }], uscita: '' },
-    },
-  };
+  const dati = { giorno: { data: '2026-11-20', ingresso: '08:10', pause: [{ uscita: '10:30', rientro: '10:40' }, { uscita: '12:30', rientro: '12:50' }] } };
   const formati = [
     ['telefono', { ...devices['iPhone 13'] }],
     ['desktop', { viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 }],
@@ -145,11 +139,9 @@ if (SCREENSHOT) {
       await page.evaluate((d) => localStorage.setItem('calcolatore-orario', JSON.stringify(d)), dati);
       await page.reload();
       await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}.png`, fullPage: true });
-      if (tema === 'chiaro' || nome === 'telefono') {
-        await page.getByRole('tab', { name: 'Storico' }).click();
-        await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-storico.png`, fullPage: true });
-        await page.getByRole('tab', { name: 'Impostazioni' }).click();
-        await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-impostazioni.png`, fullPage: true });
+      if (nome === 'telefono' && tema === 'chiaro') {
+        await page.click('#btnRegole');
+        await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-regole.png` });
       }
       await ctx.close();
     }

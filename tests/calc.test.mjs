@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calcolaGiornata, parseHHMM, parseDurata, fmtOra, fmtDurata, fmtSaldo,
-  riepilogo, esportaCSV, lunedi, addDays, REGOLE_DEFAULT,
+  REGOLE_DEFAULT,
 } from '../js/calc.js';
 
 const K = '2026-11-20'; // venerdì
@@ -71,48 +71,83 @@ test('senza pausa: +30 minuti su fine giornata e buono pasto', () => {
   assert.equal(ora(c.buonoPasto), '14:30');
 });
 
-test('lavorato: la mezz\'ora obbligatoria si toglie solo dopo 6 ore (correzione v1)', () => {
-  // v1 mostrava 1:30 dopo 2 ore senza pause: errato
+test('lavorato come ePAS: i minuti mancanti si tolgono solo se resta il buono pasto', () => {
   const c1 = calcolaGiornata({ ingresso: '08:00' }, K, REGOLE_DEFAULT, at('10:00'));
   assert.equal(c1.lavorato, 120);
-  // tra 6h e 6h30 il lavorato resta fermo a 6:00
+  // 6:20 senza pausa: tolti 30 min resterebbero 5:50 < 6:00 → niente decurtazione
   const c2 = calcolaGiornata({ ingresso: '08:00' }, K, REGOLE_DEFAULT, at('14:20'));
-  assert.equal(c2.lavorato, 360);
-  // all'ora di fine giornata il lavorato è esattamente 7:12, come in v1
-  const c3 = calcolaGiornata({ ingresso: '08:00' }, K, REGOLE_DEFAULT, at('15:42'));
-  assert.equal(c3.lavorato, 432);
-  assert.equal(c3.alFine, 0);
+  assert.equal(c2.lavorato, 380);
+  const c3 = calcolaGiornata({ ingresso: '08:00' }, K, REGOLE_DEFAULT, at('14:30'));
+  assert.equal(c3.lavorato, 360);
+  // all'ora di fine giornata il lavorato è esattamente 7:12
+  const c4 = calcolaGiornata({ ingresso: '08:00' }, K, REGOLE_DEFAULT, at('15:42'));
+  assert.equal(c4.lavorato, 432);
+  assert.equal(c4.alFine, 0);
 });
 
-test('fine giornata e buono pasto identici alla versione 1 (confronto a tappeto)', () => {
-  let casi = 0;
+// Riferimento indipendente della regola ePAS (PersonDayManager.getGapLunchPairs + mealTicketHandler)
+function epasAtteso(entrata, pause) {
+  const t = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const ps = pause.map((p) => [t(p.uscita), t(p.rientro)]).sort((a, b) => a[0] - b[0]);
+  const tot = ps.reduce((s, [u, r]) => s + r - u, 0);
+  const primo = ps.find(([u, r]) => !(r < 720 || u > 900));
+  const eff = primo ? Math.min(primo[1], 900) - Math.max(primo[0], 720) : 0;
+  const toCut = Math.max(0, 30 - eff);
+  const e = t(entrata);
+  return { fine: e + 432 + tot + toCut, buono: e + 360 + tot + toCut };
+}
+
+test('fine giornata e buono pasto come ePAS (confronto a tappeto) e come la v1 quando la pausa è regolare', () => {
+  const pad = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  let casi = 0, ugualiV1 = 0;
   for (let e = 7 * 60; e <= 10 * 60; e += 17) {
-    for (let pu = 11 * 60; pu <= 14 * 60 + 30; pu += 23) {
-      for (const dur of [0, 10, 29, 30, 45, 61]) {
-        const pad = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    for (let pu = 11 * 60; pu <= 15 * 60; pu += 13) {
+      for (const dur of [0, 5, 10, 20, 29, 30, 45, 61]) {
         const pause = dur ? [{ uscita: pad(pu), rientro: pad(pu + dur) }] : [];
-        const o = originale(pad(e), pause, 0);
+        const atteso = epasAtteso(pad(e), pause);
         const c = calcolaGiornata({ ingresso: pad(e), pause }, K, REGOLE_DEFAULT, at('07:00'));
-        assert.equal(ora(c.fineGiornata), pad(o.fine), `fine ${pad(e)} ${JSON.stringify(pause)}`);
-        assert.equal(ora(c.buonoPasto), pad(o.buono), `buono ${pad(e)} ${JSON.stringify(pause)}`);
-        // dopo la fine giornata il lavorato coincide con v1
-        const now = o.fine + 20;
-        const c2 = calcolaGiornata({ ingresso: pad(e), pause }, K, REGOLE_DEFAULT, at(pad(now)));
-        assert.equal(c2.lavorato, originale(pad(e), pause, now).lavorato);
+        assert.equal(ora(c.fineGiornata), pad(atteso.fine), `fine ${pad(e)} ${JSON.stringify(pause)}`);
+        assert.equal(ora(c.buonoPasto), pad(atteso.buono), `buono ${pad(e)} ${JSON.stringify(pause)}`);
+        // senza pausa, o con pausa di almeno 30 min tutta nella fascia, il risultato è quello della v1
+        if (!dur || (pu >= 720 && pu + dur <= 900 && dur >= 30)) {
+          const o = originale(pad(e), pause, 0);
+          assert.equal(ora(c.fineGiornata), pad(o.fine));
+          assert.equal(ora(c.buonoPasto), pad(o.buono));
+          ugualiV1++;
+        }
         casi++;
       }
     }
   }
-  assert.ok(casi > 500);
+  assert.ok(casi > 1000 && ugualiV1 > 100);
 });
 
-test('pausa fuori finestra o troppo corta non vale come pranzo', () => {
+test('pausa pranzo corta o a cavallo della fascia: si aggiungono solo i minuti mancanti (ePAS)', () => {
   const r = (pause) => calcolaGiornata({ ingresso: '08:00', pause }, K, REGOLE_DEFAULT, at('09:00'));
-  assert.equal(r([{ uscita: '11:50', rientro: '12:40' }]).pranzoOk, false); // inizia prima delle 12
-  assert.equal(r([{ uscita: '14:45', rientro: '15:15' }]).pranzoOk, false); // finisce dopo le 15
-  assert.equal(r([{ uscita: '12:00', rientro: '12:29' }]).pranzoOk, false); // 29 minuti
-  assert.equal(r([{ uscita: '12:00', rientro: '12:30' }]).pranzoOk, true);
-  assert.equal(r([{ uscita: '14:30', rientro: '15:00' }]).pranzoOk, true);
+  const casi = [
+    [[], 30, '15:42', '14:30'],
+    [[{ uscita: '12:30', rientro: '12:50' }], 10, '15:42', '14:30'],  // v1: 16:02 e 14:50
+    [[{ uscita: '11:45', rientro: '12:30' }], 0, '15:57', '14:45'],   // tagliata alle 12:00 → 30 min
+    [[{ uscita: '11:50', rientro: '12:10' }], 20, '15:52', '14:40'],  // conta solo 12:00–12:10
+    [[{ uscita: '14:45', rientro: '15:20' }], 15, '16:02', '14:50'],  // conta solo 14:45–15:00
+    [[{ uscita: '12:00', rientro: '12:30' }], 0, '15:42', '14:30'],
+    [[{ uscita: '10:30', rientro: '10:40' }], 30, '15:52', '14:40'],  // fuori fascia: non è pranzo
+  ];
+  for (const [pause, manca, fine, buono] of casi) {
+    const c = r(pause);
+    assert.equal(c.mancaPausa, manca, JSON.stringify(pause));
+    assert.equal(ora(c.fineGiornata), fine, JSON.stringify(pause));
+    assert.equal(ora(c.buonoPasto), buono, JSON.stringify(pause));
+  }
+});
+
+test('conta solo la PRIMA pausa nella fascia (come ePAS)', () => {
+  // caffè 12:05–12:15 e poi pranzo 13:00–13:30: ePAS considera solo il caffè (10 min) → +20
+  const g = { ingresso: '08:00', pause: [{ uscita: '13:00', rientro: '13:30' }, { uscita: '12:05', rientro: '12:15' }] };
+  const c = calcolaGiornata(g, K, REGOLE_DEFAULT, at('09:00'));
+  assert.equal(c.pausaPranzo, 10);
+  assert.equal(c.mancaPausa, 20);
+  assert.equal(ora(c.fineGiornata), '16:12'); // 8:00 + 7:12 + 40 min di pause + 20
 });
 
 test('più pause: si sommano tutte', () => {
@@ -210,27 +245,4 @@ test('ore per giorno della settimana e giornata corta senza pausa obbligatoria',
   // ore della singola giornata (es. permesso) hanno la precedenza
   const c = calcolaGiornata({ ingresso: '08:00', ore: 240 }, K, regole, at('09:00'));
   assert.equal(ora(c.fineGiornata), '12:00');
-});
-
-test('riepilogo settimana e CSV', () => {
-  const giorni = {
-    '2026-11-16': { ingresso: '08:00', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '16:00' }, // +18
-    '2026-11-17': { ingresso: '08:00', pause: [{ uscita: '13:00', rientro: '13:30' }], uscita: '15:30' }, // −12
-    '2026-11-18': {},
-    '2026-11-20': { ingresso: '08:00' }, // oggi, in corso
-    '2026-11-09': { ingresso: '08:00', uscita: '12:00' },
-  };
-  assert.equal(lunedi(K), '2026-11-16');
-  assert.equal(addDays(lunedi(K), 6), '2026-11-22');
-  const r = riepilogo(giorni, '2026-11-16', '2026-11-22', REGOLE_DEFAULT, at('10:00'));
-  assert.equal(r.giorni, 3);
-  assert.equal(r.saldo, 6);
-  assert.equal(r.lavorato, 450 + 420 + 120);
-  assert.equal(r.dovuto, 432 * 3);
-  assert.equal(r.buoni, 2);
-  const csv = esportaCSV(giorni, '2026-11-01', '2026-11-30', REGOLE_DEFAULT, at('10:00'));
-  const righe = csv.trim().split('\r\n');
-  assert.equal(righe.length, 5);
-  assert.ok(csv.startsWith('\uFEFFData;Giorno;Ingresso'));
-  assert.equal(righe[2], '16/11/2026;lunedì;08:00;13:00-13:30;16:00;0:30;7:30;7:12;+0:18;sì;');
 });

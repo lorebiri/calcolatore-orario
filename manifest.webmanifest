@@ -1,7 +1,7 @@
 {
   "name": "Calcolatore orario",
   "short_name": "Orario",
-  "description": "A che ora puoi uscire, buono pasto e saldo delle ore. I dati restano sul dispositivo.",
+  "description": "A che ora matura la giornata e il buono pasto, con le regole di ePAS. I dati restano sul dispositivo.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",
