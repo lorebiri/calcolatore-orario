@@ -6,8 +6,8 @@
 <title>Calcolatore orario</title>
 <meta name="description" content="A che ora matura la giornata e a che ora matura il buono pasto, con le regole di ePAS. I dati restano sul tuo dispositivo.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6efe9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07061a" media="(prefers-color-scheme: dark)">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.webmanifest">
@@ -20,16 +20,21 @@
 </head>
 <body>
 
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
 <header class="testata">
   <h1>
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M16 3a13 13 0 0 1 12.4 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 9v7l4.5 3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Calcolatore orario
+    <span>Calcolatore orario<small id="dataOggi"></small></span>
   </h1>
   <div class="testata-azioni">
-    <button type="button" class="btn-icona" id="btnTema" aria-label="Cambia tema">
+    <button type="button" class="btn-icona vetro" id="btnIntero" aria-label="Schermo intero" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <button type="button" class="btn-icona vetro" id="btnTema" aria-label="Cambia tema">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor"/></svg>
     </button>
-    <button type="button" class="btn-icona" id="btnRegole" aria-label="Regole e impostazioni" aria-haspopup="dialog">
+    <button type="button" class="btn-icona vetro" id="btnRegole" aria-label="Regole e impostazioni" aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="10" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
     </button>
   </div>
@@ -37,27 +42,39 @@
 
 <main class="contenitore">
 
-  <!-- I due risultati -->
-  <section class="risultati" aria-label="Risultati">
-    <article class="risultato" id="rGiornata">
-      <h2>Giornata maturata alle</h2>
-      <p class="ora" id="oraGiornata">--:--</p>
-      <p class="quando" id="traGiornata">Inserisci l'ingresso</p>
-      <div class="barra" aria-hidden="true"><i id="barraGiornata"></i></div>
-    </article>
-    <article class="risultato" id="rBuono">
-      <h2>Buono pasto alle</h2>
-      <p class="ora" id="oraBuono">--:--</p>
-      <p class="quando" id="traBuono">&nbsp;</p>
-      <div class="barra" aria-hidden="true"><i id="barraBuono"></i></div>
-    </article>
+  <!-- Quadrante: anello esterno = giornata, anello interno = buono pasto -->
+  <section class="scena" aria-label="Risultati">
+    <div class="dial vetro" id="rGiornata">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs><linearGradient id="gradGiornata" x1="0" y1="0" x2="1" y2="1"><stop id="gradDa" offset="0" stop-color="#f59e0b"/><stop id="gradA" offset="1" stop-color="#ec4899"/></linearGradient></defs>
+        <g id="tacche"></g>
+        <circle class="traccia" cx="100" cy="100" r="88" stroke-width="15"/>
+        <circle class="arco-giornata" id="arcoGiornata" cx="100" cy="100" r="88" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        <circle class="traccia" cx="100" cy="100" r="72" stroke-width="9"/>
+        <circle class="arco-buono" id="arcoBuono" cx="100" cy="100" r="72" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        <circle class="punta" id="punta" r="7" cx="188" cy="100" visibility="hidden"/>
+      </svg>
+      <div class="centro" id="centro">
+        <h2 class="et" id="etGiornata">Giornata maturata alle</h2>
+        <p class="grande" id="oraGiornata">--:--</p>
+        <p class="conto" id="traGiornata">Inserisci l'ingresso</p>
+      </div>
+    </div>
+
+    <div class="lato">
+      <article class="buono vetro" id="rBuono">
+        <span class="icona" aria-hidden="true">€</span>
+        <h2>Buono pasto alle</h2>
+        <p><span class="ora-buono" id="oraBuono">--:--</span> <span class="tra" id="traBuono"></span></p>
+      </article>
+      <p class="avviso vetro" id="avvisoPausa" role="status"></p>
+      <div class="azione-rapida" id="azioneRapida"></div>
+    </div>
   </section>
 
   <!-- Timbrature -->
-  <section class="card" aria-labelledby="titTimbrature">
+  <section class="card vetro" aria-labelledby="titTimbrature">
     <h2 class="titoletto" id="titTimbrature">Timbrature di oggi</h2>
-
-    <div class="azione-rapida" id="azioneRapida"></div>
 
     <div class="campo">
       <label for="ingresso">Ingresso</label>
@@ -74,7 +91,6 @@
       Aggiungi pausa
     </button>
 
-    <p class="avviso" id="avvisoPausa" role="status"></p>
     <div role="alert"><ul class="errori" id="errori"></ul></div>
 
     <button type="button" class="link" id="azzera">Azzera la giornata</button>
@@ -90,7 +106,7 @@
 </footer>
 
 <!-- Regole e impostazioni -->
-<dialog id="dlgRegole" aria-labelledby="titRegole">
+<dialog id="dlgRegole" class="vetro" aria-labelledby="titRegole">
   <form method="dialog" id="formRegole" novalidate>
     <div class="dlg-testa">
       <h2 id="titRegole">Regole</h2>
@@ -138,6 +154,7 @@
   </form>
 </dialog>
 
+<canvas class="coriandoli" id="coriandoli" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

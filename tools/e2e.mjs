@@ -55,8 +55,8 @@ await prova('giornata tipo: uscita 15:52 e buono pasto 14:40, dati salvati', asy
   await page.fill('#pausa-rientro-0', '13:00');
   assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
   assert.equal(await testoDi(page, '#oraBuono'), '14:40');
-  assert.equal(await testoDi(page, '#traGiornata'), 'tra 2:47');
-  assert.equal(await testoDi(page, '#traBuono'), 'tra 1:35');
+  assert.equal(await testoDi(page, '#traGiornata'), 'tra 2:47:00');
+  assert.equal(await testoDi(page, '#traBuono'), 'tra 1:35:00');
   assert.match(await testoDi(page, '#avvisoPausa'), /nessun minuto aggiunto/);
   await page.reload();
   assert.equal(await page.inputValue('#ingresso'), '08:10');
@@ -91,10 +91,25 @@ await prova('pulsanti rapidi: ingresso, pausa, rientro; giornata e buono maturat
   assert.equal(await testoDi(page, '#oraGiornata'), '15:52');
   assert.equal(await testoDi(page, '#oraBuono'), '14:40');
   await page.clock.fastForward('03:00:00');
-  assert.match(await testoDi(page, '#traGiornata'), /Maturata/);
-  assert.match(await testoDi(page, '#traBuono'), /Maturato/);
+  assert.equal(await testoDi(page, '#traGiornata'), '✓ Puoi uscire');
+  assert.match(await testoDi(page, '#traBuono'), /maturato/);
   assert.deepEqual(errori, []);
   await ctx.close();
+});
+
+await prova('festa quando matura: messaggio sempre, coriandoli solo senza «riduci movimento»', async () => {
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    const { ctx, page, errori } = await nuovaPagina({ reducedMotion }, '2026-11-20T14:49:30');
+    await page.evaluate(() => localStorage.setItem('calcolatore-orario', JSON.stringify({ giorno: { data: '2026-11-20', ingresso: '08:10', pause: [{ uscita: '10:30', rientro: '10:40' }, { uscita: '12:30', rientro: '13:00' }] } })));
+    await page.reload();
+    assert.match(await testoDi(page, '#traBuono'), /^tra 0:00:3/);
+    await page.clock.fastForward('00:01:00');
+    assert.match(await testoDi(page, '#toast'), /Buono pasto maturato/);
+    const disegnato = await page.evaluate(() => document.getElementById('coriandoli').width === Math.round(innerWidth * Math.min(2, devicePixelRatio || 1)));
+    assert.equal(disegnato, reducedMotion === 'no-preference', `coriandoli con ${reducedMotion}`);
+    assert.deepEqual(errori, []);
+    await ctx.close();
+  }
 });
 
 await prova('regole: ore da fare 6:00', async () => {
@@ -213,7 +228,7 @@ await prova('pagina di istruzioni: pulsante pronto e codice copiabile', async ()
 });
 
 if (SCREENSHOT) {
-  const dati = { giorno: { data: '2026-11-20', ingresso: '08:10', pause: [{ uscita: '10:30', rientro: '10:40' }, { uscita: '12:30', rientro: '12:50' }] } };
+  const dati = { giorno: { data: '2026-11-20', ingresso: '08:10', pause: [{ uscita: '10:30', rientro: '10:40' }, { uscita: '12:30', rientro: '13:00' }] } };
   const formati = [
     ['telefono', { ...devices['iPhone 13'] }],
     ['desktop', { viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 }],
@@ -227,6 +242,14 @@ if (SCREENSHOT) {
       if (nome === 'telefono' && tema === 'chiaro') {
         await page.click('#btnRegole');
         await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-regole.png` });
+      }
+      if (tema === 'scuro') {
+        // schermo intero (simulato: in un browser senza finestra non si può attivare davvero)
+        await page.evaluate(() => document.body.classList.add('intero'));
+        await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-schermo-intero.png` });
+        await page.evaluate(() => document.body.classList.remove('intero'));
+        await page.clock.fastForward('01:45:00');
+        await page.screenshot({ path: `docs/screenshot/dopo/${nome}-${tema}-maturata.png` });
       }
       await ctx.close();
     }

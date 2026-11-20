@@ -2,7 +2,7 @@
 // I dati (timbrature di oggi e regole) restano in localStorage su questo dispositivo.
 import { REGOLE_DEFAULT, calcolaGiornata, parseHHMM, parseDurata, fmtOra, fmtDurata, pad, dateKey } from './calc.js';
 
-const VERSIONE = '2.2.0';
+const VERSIONE = '3.0.0';
 const CHIAVE = 'calcolatore-orario';
 const CHIAVE_AVVISI = 'calcolatore-orario-avvisi';
 const $ = (s) => document.querySelector(s);
@@ -162,11 +162,76 @@ function disegnaAzione(c) {
 // ─────────── Risultati ───────────
 function testo(id, t) { const n = document.getElementById(id); if (n.textContent !== t) n.textContent = t; }
 
-function risultato(nome, ora, mancano, maturato, perc, attivo, testoMaturato) {
-  testo('ora' + nome, ora);
-  document.getElementById('r' + nome).classList.toggle('maturato', attivo && maturato);
-  document.getElementById('barra' + nome).style.width = (attivo ? Math.max(0, Math.min(100, perc)) : 0) + '%';
-  testo('tra' + nome, !attivo ? ' ' : maturato ? testoMaturato : `tra ${fmtDurata(mancano)}`);
+// conto alla rovescia al secondo: "1:41:57"
+function hms(ms) {
+  const x = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(x / 3600)}:${pad(Math.floor(x / 60) % 60)}:${pad(x % 60)}`;
+}
+
+// ─────────── Quadrante ───────────
+const NS = 'http://www.w3.org/2000/svg';
+for (let i = 0; i < 60; i++) {
+  const a = (i / 60) * Math.PI * 2, r2 = i % 5 ? 102 : 106;
+  const l = document.createElementNS(NS, 'line');
+  l.setAttribute('class', 'tacca');
+  l.setAttribute('x1', String(100 + Math.cos(a) * 99)); l.setAttribute('y1', String(100 + Math.sin(a) * 99));
+  l.setAttribute('x2', String(100 + Math.cos(a) * r2)); l.setAttribute('y2', String(100 + Math.sin(a) * r2));
+  $('#tacche').append(l);
+}
+// colore che segue la giornata: arancio → rosa → viola → verde
+const TAPPE = [[245, 158, 11], [236, 72, 153], [139, 92, 246], [16, 185, 129]];
+function coloreFase(f) {
+  const n = TAPPE.length - 1, i = Math.min(n - 1, Math.floor(f * n)), t = f * n - i;
+  return `rgb(${TAPPE[i].map((v, k) => Math.round(v + (TAPPE[i + 1][k] - v) * t)).join(',')})`;
+}
+function disegnaQuadrante(fG, fB) {
+  document.documentElement.style.setProperty('--fase', coloreFase(fG));
+  $('#gradDa').setAttribute('stop-color', coloreFase(Math.max(0, fG - 0.3)));
+  $('#gradA').setAttribute('stop-color', coloreFase(fG));
+  $('#arcoGiornata').setAttribute('stroke-dashoffset', String(100 - fG * 100));
+  $('#arcoBuono').setAttribute('stroke-dashoffset', String(100 - fB * 100));
+  const a = fG * Math.PI * 2, punta = $('#punta');
+  punta.setAttribute('cx', String(100 + Math.cos(a) * 88));
+  punta.setAttribute('cy', String(100 + Math.sin(a) * 88));
+  punta.setAttribute('visibility', fG > 0 ? 'visible' : 'hidden');
+}
+
+// ─────────── Festa quando matura (coriandoli e vibrazione; niente con "riduci movimento") ───────────
+const ridotto = matchMedia('(prefers-reduced-motion: reduce)');
+let precedente = null;
+function festeggia(cosa) {
+  toast(cosa === 'giornata' ? 'Giornata maturata: puoi uscire!' : 'Buono pasto maturato!');
+  const centro = $('#centro');
+  centro.classList.remove('festa');
+  void centro.offsetWidth;
+  if (cosa === 'giornata') centro.classList.add('festa');
+  if (ridotto.matches) return;
+  navigator.vibrate?.([30, 60, 30]);
+  coriandoli();
+}
+function coriandoli() {
+  const cv = $('#coriandoli');
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const colori = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#ffffff'];
+  const pezzi = Array.from({ length: 150 }, () => ({
+    x: innerWidth / 2, y: innerHeight * 0.35, vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 14 - 4,
+    r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+    c: colori[Math.floor(Math.random() * colori.length)],
+  }));
+  const t0 = performance.now();
+  (function frame(t) {
+    const dt = t - t0;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const q of pezzi) {
+      q.vy += 0.3; q.vx *= 0.99; q.x += q.vx; q.y += q.vy; q.r += q.vr;
+      ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.r); ctx.globalAlpha = Math.max(0, 1 - dt / 3000);
+      ctx.fillStyle = q.c; ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h * Math.abs(Math.cos(q.r * 2))); ctx.restore();
+    }
+    if (dt < 3000) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+  })(t0);
 }
 
 function aggiorna() {
@@ -178,15 +243,32 @@ function aggiorna() {
 
   const attivo = c.stato === 'in-corso' || c.stato === 'pausa';
   if (c.stato === 'vuoto') {
-    risultato('Giornata', '--:--', 0, false, 0, false);
-    risultato('Buono', '--:--', 0, false, 0, false);
+    testo('etGiornata', 'Giornata maturata alle');
+    testo('oraGiornata', '--:--');
     testo('traGiornata', 'Inserisci l\'ingresso');
+    testo('oraBuono', '--:--');
+    testo('traBuono', '');
+    $('#rGiornata').classList.remove('maturato');
+    $('#rBuono').classList.remove('maturato');
+    disegnaQuadrante(0, 0);
+    precedente = null;
   } else {
-    const trascorsi = (adesso - c.ingresso) / 60000;
-    const durata = (d) => Math.max(1, (d - c.ingresso) / 60000);
-    risultato('Giornata', oraDi(c.fineGiornata), c.alFine, c.alFine <= 0, trascorsi / durata(c.fineGiornata) * 100, attivo, '✓ Maturata: puoi uscire');
-    risultato('Buono', oraDi(c.buonoPasto), c.alBuono, c.buonoMaturato, trascorsi / durata(c.buonoPasto) * 100, attivo, '✓ Maturato');
-    if (c.stato === 'futuro') testo('traGiornata', 'Ingresso alle ' + g.ingresso);
+    const frazione = (d) => Math.min(1, Math.max(0, (adesso - c.ingresso) / Math.max(60000, d - c.ingresso)));
+    const fattaG = attivo && c.alFine <= 0, fattoB = attivo && c.buonoMaturato;
+    testo('etGiornata', 'Giornata maturata alle');
+    testo('oraGiornata', oraDi(c.fineGiornata));
+    testo('traGiornata', c.stato === 'futuro' ? 'Ingresso alle ' + g.ingresso : !attivo ? ' ' : fattaG ? '✓ Puoi uscire' : 'tra ' + hms(c.fineGiornata - adesso));
+    testo('oraBuono', oraDi(c.buonoPasto));
+    testo('traBuono', !attivo ? '' : fattoB ? '✓ maturato' : 'tra ' + hms(c.buonoPasto - adesso));
+    $('#rGiornata').classList.toggle('maturato', fattaG);
+    $('#rBuono').classList.toggle('maturato', fattoB);
+    disegnaQuadrante(attivo ? frazione(c.fineGiornata) : 0, attivo ? frazione(c.buonoPasto) : 0);
+    // festa solo al passaggio, mentre l'app è aperta (non all'apertura)
+    if (precedente && precedente.data === g.data) {
+      if (!precedente.b && fattoB) festeggia('buono');
+      if (!precedente.g && fattaG) festeggia('giornata');
+    }
+    precedente = { data: g.data, g: fattaG, b: fattoB };
   }
 
   // durata delle pause, pausa pranzo ed errori
@@ -341,7 +423,28 @@ function importaDaEpas() {
   toast(`Da ePAS: ingresso ${d.i}${np ? `, ${np} ${np === 1 ? 'pausa' : 'pause'}` : ''}${d.r ? ' e regole del giorno' : ''}`);
 }
 
+// ─────────── Schermo intero (con schermo sempre acceso, se il browser lo consente) ───────────
+let blocco = null;
+async function bloccaSchermo() {
+  try { blocco = await navigator.wakeLock?.request('screen'); } catch { blocco = null; }
+}
+$('#btnIntero').addEventListener('click', async () => {
+  try {
+    if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); await bloccaSchermo(); }
+    else await document.exitFullscreen();
+  } catch { toast('Schermo intero non disponibile su questo browser'); }
+});
+document.addEventListener('fullscreenchange', () => {
+  const on = !!document.fullscreenElement;
+  $('#btnIntero').setAttribute('aria-pressed', String(on));
+  document.body.classList.toggle('intero', on);
+  if (!on) { blocco?.release?.(); blocco = null; }
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && document.fullscreenElement && !blocco) bloccaSchermo(); });
+if (!document.documentElement.requestFullscreen) $('#btnIntero').hidden = true;
+
 // ─────────── Avvio ───────────
+$('#dataOggi').textContent = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 $('#versione').textContent = 'v' + VERSIONE;
 importaDaEpas();
 applicaTema();
