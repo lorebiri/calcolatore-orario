@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposta A · Quadrante</title>
+<meta name="color-scheme" content="light dark">
+<style>
+@font-face { font-family: Inter; src: url('../../fonts/inter-latin-wght.woff2') format('woff2'); font-weight: 100 900; }
+:root {
+  --sfondo: #f6efe9; --testo: #1a1530; --tenue: #4f4866;
+  --vetro: rgba(255,255,255,.6); --vetro-bordo: rgba(255,255,255,.95); --ombra: 0 12px 40px rgba(60,30,90,.14);
+  --traccia: rgba(26,21,48,.08); --b1: #ffb38a; --b2: #c4b5fd; --b3: #7dd3fc;
+  --fase: #f59e0b; --buono: #d97706; --ok: #047857;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --sfondo: #07061a; --testo: #f4f1ff; --tenue: #bdb6dc; --vetro: rgba(255,255,255,.07); --vetro-bordo: rgba(255,255,255,.14);
+    --ombra: 0 20px 60px rgba(0,0,0,.5); --traccia: rgba(255,255,255,.08); --b1: #ea580c; --b2: #6d28d9; --b3: #0e7490; --buono: #fbbf24; --ok: #6ee7b7; }
+}
+* { box-sizing: border-box; margin: 0; }
+body { font-family: Inter, system-ui, sans-serif; background: var(--sfondo); color: var(--testo); min-height: 100vh; overflow-x: hidden; font-feature-settings: 'tnum' 1; }
+.aurora { position: fixed; inset: -20vmax; z-index: -1; filter: blur(80px) saturate(1.3); }
+.aurora i { position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%; animation: deriva 28s ease-in-out infinite alternate; }
+.aurora i:nth-child(1) { background: radial-gradient(circle, var(--b1), transparent 65%); left: 0; top: 0; }
+.aurora i:nth-child(2) { background: radial-gradient(circle, var(--b2), transparent 65%); right: 0; top: 10%; animation-duration: 34s; animation-delay: -9s; }
+.aurora i:nth-child(3) { background: radial-gradient(circle, var(--b3), transparent 65%); left: 30%; bottom: 0; animation-duration: 40s; animation-delay: -18s; }
+@keyframes deriva { 50% { transform: translate(8vmax,-6vmax) scale(1.15); } 100% { transform: translate(-6vmax,6vmax) scale(.95); } }
+
+.app { max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 18px 28px; min-height: 100vh; display: flex; flex-direction: column; }
+header { display: flex; justify-content: space-between; align-items: center; }
+header small { display: block; font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--tenue); }
+header strong { font-size: 1.25rem; font-weight: 750; }
+.vetro { background: var(--vetro); border: 1px solid var(--vetro-bordo); box-shadow: var(--ombra); backdrop-filter: blur(28px) saturate(1.4); -webkit-backdrop-filter: blur(28px) saturate(1.4); }
+.tondo { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: var(--testo); cursor: pointer; }
+
+.scena { flex: 1; display: grid; place-items: center; gap: 22px; padding: 18px 0; }
+@media (min-width: 960px) { .scena { grid-template-columns: 1.3fr 1fr; gap: 48px; } }
+.dial { container-type: inline-size; position: relative; width: min(100%, 470px); aspect-ratio: 1; border-radius: 50%; padding: 6%; }
+.dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.dial circle { fill: none; stroke-linecap: round; }
+.traccia { stroke: var(--traccia); }
+.g-arco { stroke: url(#gradG); stroke-width: 15; filter: drop-shadow(0 0 10px var(--fase)); transition: stroke-dashoffset .3s linear; }
+.b-arco { stroke: var(--buono); stroke-width: 9; transition: stroke-dashoffset .3s linear; }
+.tacca { stroke: var(--tenue); stroke-width: 1.5; opacity: .45; stroke-linecap: round; }
+.punta { fill: #fff; stroke: var(--fase); stroke-width: 4; filter: drop-shadow(0 0 8px var(--fase)); }
+.centro { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.centro .et { font-size: max(.85rem, 4.2cqi); font-weight: 650; color: var(--tenue); }
+.centro .grande { font-size: 23cqi; font-weight: 820; letter-spacing: -.055em; line-height: .95; background: linear-gradient(170deg, var(--testo) 35%, var(--fase)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.centro .conto { font-size: max(1.1rem, 6.2cqi); font-weight: 750; margin-top: 4px; }
+.centro .conto span { font-size: .7em; color: var(--tenue); font-weight: 600; }
+.festa .grande { animation: pulsa 1.4s ease-in-out 3; }
+@keyframes pulsa { 50% { transform: scale(1.07); } }
+
+.lato { display: grid; gap: 14px; width: min(100%, 470px); }
+.buono { border-radius: 26px; padding: 18px 20px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; }
+.buono .icona { grid-row: span 2; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: color-mix(in srgb, var(--buono) 22%, transparent); color: var(--buono); font-size: 1.5rem; font-weight: 800; }
+.buono small { color: var(--tenue); font-weight: 650; }
+.buono b { font-size: 2.6rem; font-weight: 820; letter-spacing: -.04em; line-height: 1; }
+.buono b .tra { font-size: 1rem; font-weight: 700; letter-spacing: 0; color: var(--tenue); margin-left: 8px; }
+.buono.ok b .tra { color: var(--ok); }
+.riga { border-radius: 20px; padding: 14px 18px; font-weight: 600; color: var(--tenue); display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.riga b { color: var(--testo); }
+.btn { min-height: 62px; border-radius: 22px; border: 0; font: inherit; font-size: 1.1rem; font-weight: 780; cursor: pointer; color: #1a1530; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--b1), var(--fase)); box-shadow: 0 12px 30px color-mix(in srgb, var(--fase) 45%, transparent); }
+.btn::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.75), transparent 60%); opacity: 0; }
+.btn.timbrato { animation: premi .35s; } .btn.timbrato::after { animation: onda .6s; }
+@keyframes premi { 40% { transform: scale(.96); } }
+@keyframes onda { from { opacity: .9; transform: scale(.2); } to { opacity: 0; transform: scale(2.4); } }
+.proposta { text-align: center; color: var(--tenue); font-size: .8rem; font-weight: 600; }
+:focus-visible { outline: 3px solid var(--fase); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .aurora i, .festa .grande, .btn.timbrato, .btn.timbrato::after { animation: none !important; } .g-arco, .b-arco { transition: none; } }
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="app">
+  <header>
+    <div><small>Oggi</small><strong>venerdì 20 novembre</strong></div>
+    <button class="tondo vetro" id="intero" aria-label="Schermo intero" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </header>
+
+  <main class="scena">
+    <div class="dial vetro">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs><linearGradient id="gradG" x1="0" y1="0" x2="1" y2="1"><stop id="s1" offset="0"/><stop id="s2" offset="1"/></linearGradient></defs>
+        <g id="tacche"></g>
+        <circle class="traccia" cx="100" cy="100" r="88" stroke-width="15"/>
+        <circle class="g-arco" id="gArco" cx="100" cy="100" r="88" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        <circle class="traccia" cx="100" cy="100" r="72" stroke-width="9"/>
+        <circle class="b-arco" id="bArco" cx="100" cy="100" r="72" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        <circle class="punta" id="punta" r="7"/>
+      </svg>
+      <div class="centro" id="centro">
+        <p class="et" id="et">Giornata maturata alle</p>
+        <p class="grande" id="ora">--:--</p>
+        <p class="conto" id="conto"></p>
+      </div>
+    </div>
+
+    <div class="lato">
+      <div class="vetro buono" id="buono">
+        <span class="icona" aria-hidden="true">€</span>
+        <small>Buono pasto alle</small>
+        <b><span id="oraB">--:--</span><span class="tra" id="traB"></span></b>
+      </div>
+      <p class="vetro riga" id="riga"></p>
+      <button class="btn" id="timbra">Vado in pausa</button>
+    </div>
+  </main>
+  <p class="proposta">Proposta A · Quadrante — anello esterno: giornata · anello interno: buono pasto</p>
+</div>
+<script type="module">
+import { avvia, coloreFase, feedback, coriandoli, schermoIntero } from './demo.js';
+const $ = (s) => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+for (let i = 0; i < 60; i++) {
+  const a = i / 60 * Math.PI * 2, r1 = 99, r2 = i % 5 ? 102 : 106;
+  const l = document.createElementNS(NS, 'line');
+  l.setAttribute('class', 'tacca');
+  l.setAttribute('x1', 100 + Math.cos(a) * r1); l.setAttribute('y1', 100 + Math.sin(a) * r1);
+  l.setAttribute('x2', 100 + Math.cos(a) * r2); l.setAttribute('y2', 100 + Math.sin(a) * r2);
+  $('#tacche').append(l);
+}
+const TAPPE = [[245, 158, 11], [236, 72, 153], [139, 92, 246], [16, 185, 129]];
+avvia((s) => {
+  const col = coloreFase(s.fGiornata, TAPPE);
+  document.documentElement.style.setProperty('--fase', col);
+  $('#s1').setAttribute('stop-color', coloreFase(Math.max(0, s.fGiornata - 0.3), TAPPE));
+  $('#s2').setAttribute('stop-color', col);
+  $('#gArco').setAttribute('stroke-dashoffset', 100 - s.fGiornata * 100);
+  $('#bArco').setAttribute('stroke-dashoffset', 100 - s.fBuono * 100);
+  const a = s.fGiornata * Math.PI * 2;
+  $('#punta').setAttribute('cx', 100 + Math.cos(a) * 88); $('#punta').setAttribute('cy', 100 + Math.sin(a) * 88);
+  $('#ora').textContent = s.giornata;
+  $('#et').textContent = s.giornataOk ? 'Giornata maturata ✓' : 'Giornata maturata alle';
+  $('#conto').innerHTML = s.giornataOk ? '<span>puoi uscire</span>' : `${s.contoGiornata} <span>mancano</span>`;
+  $('#centro').classList.toggle('festa', s.giornataOk);
+  $('#buono').classList.toggle('ok', s.buonoOk);
+  $('#oraB').textContent = s.buono;
+  $('#traB').textContent = s.buonoOk ? '✓ maturato' : 'tra ' + s.contoBuono;
+  const riga = `<span>Ingresso <b>${s.ingresso}</b></span><span>Pausa pranzo <b>${s.pausaPranzo} min</b>${s.mancaPausa ? ` (+${s.mancaPausa})` : ' ✓'}</span>`;
+  if ($('#riga').innerHTML !== riga) $('#riga').innerHTML = riga;
+});
+document.addEventListener('maturato', () => coriandoli(['#f59e0b', '#ec4899', '#8b5cf6', '#10b981', '#fff']));
+$('#timbra').addEventListener('click', (e) => feedback(e.currentTarget));
+$('#intero').addEventListener('click', (e) => schermoIntero(e.currentTarget));
+</script>
+</body>
+</html>

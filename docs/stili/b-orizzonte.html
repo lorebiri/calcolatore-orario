@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposta B · Orizzonte</title>
+<meta name="color-scheme" content="light dark">
+<style>
+@font-face { font-family: Inter; src: url('../../fonts/inter-latin-wght.woff2') format('woff2'); font-weight: 100 900; }
+@font-face { font-family: Fraunces; src: url('fonts/fraunces.woff2') format('woff2'); font-weight: 100 900; }
+:root { --carta: #fbf7f0; --inchiostro: #1d1a16; --tenue: #5b5348; --riga: #e4dacb; --ok: #166534; }
+@media (prefers-color-scheme: dark) { :root { --carta: #0f1220; --inchiostro: #ece8df; --tenue: #a9a6b8; --riga: #262b42; --ok: #86efac; } }
+* { box-sizing: border-box; margin: 0; }
+body { font-family: Inter, system-ui, sans-serif; background: var(--carta); color: var(--inchiostro); font-feature-settings: 'tnum' 1; min-height: 100vh; }
+.serif { font-family: Fraunces, Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 144; }
+.pagina { max-width: 1280px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+@media (min-width: 900px) { .pagina { padding: 24px; } }
+
+.cielo { position: relative; overflow: hidden; color: #fff; flex: 1; min-height: 640px; display: flex; flex-direction: column;
+  padding: max(20px, env(safe-area-inset-top)) 22px 0;
+  background: linear-gradient(180deg, var(--a, #1e3a8a) 0%, var(--b, #f59e0b) 70%, var(--c, #fde68a) 100%); transition: background 1.5s; }
+@media (min-width: 900px) { .cielo { border-radius: 36px; padding: 34px 44px 0; min-height: 760px; } }
+.stelle { position: absolute; inset: 0; opacity: var(--notte, 0); transition: opacity 1.5s; background-image:
+  radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent), radial-gradient(1px 1px at 28% 42%, #fff 50%, transparent),
+  radial-gradient(1.5px 1.5px at 47% 12%, #fff 50%, transparent), radial-gradient(1px 1px at 63% 30%, #fff 50%, transparent),
+  radial-gradient(2px 2px at 78% 16%, #fff 50%, transparent), radial-gradient(1px 1px at 88% 44%, #fff 50%, transparent),
+  radial-gradient(1.5px 1.5px at 38% 26%, #fff 50%, transparent), radial-gradient(1px 1px at 8% 52%, #fff 50%, transparent); }
+.cima { position: relative; display: flex; justify-content: space-between; align-items: center; text-shadow: 0 1px 8px rgba(0,0,0,.3); }
+.cima p { font-weight: 650; } .cima b { display: block; font-size: 1.25rem; }
+.chiaro { min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.14); color: #fff; font: inherit; font-weight: 650; white-space: nowrap; cursor: pointer; backdrop-filter: blur(8px); }
+.titolo { position: relative; margin-top: clamp(16px, 5vh, 56px); text-shadow: 0 2px 24px rgba(0,0,0,.3); }
+.titolo .et { font-size: 1.1rem; font-weight: 650; }
+.titolo .ora { font-size: clamp(6rem, 31vw, 13rem); font-weight: 600; line-height: .88; letter-spacing: -.04em; }
+.titolo .conto { font-size: 1.2rem; font-weight: 600; margin-top: 8px; }
+.titolo .conto b { font-size: 1.6rem; font-weight: 800; }
+.buono { position: relative; display: inline-flex; align-items: baseline; gap: 10px; margin-top: 18px; padding: 10px 16px; border-radius: 16px; background: rgba(0,0,0,.18); backdrop-filter: blur(8px); font-weight: 650; }
+.buono b { font-family: Fraunces, Georgia, serif; font-size: 2rem; font-weight: 600; }
+.arco { position: relative; margin-top: auto; }
+.arco svg { display: block; width: 100%; height: auto; overflow: visible; }
+.resto { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 2.5; stroke-dasharray: 2 10; stroke-linecap: round; }
+.fatto { fill: none; stroke: #fff; stroke-width: 3.5; stroke-linecap: round; }
+.linea { stroke: rgba(255,255,255,.75); stroke-width: 1.5; }
+.sole { fill: #fff7d6; } .alone { fill: url(#alone); }
+.segno circle { fill: #fff; } .segno text { fill: #fff; font: 700 var(--fs, 16px) Inter, sans-serif; }
+.estremo { position: absolute; bottom: 12px; font-size: .85rem; font-weight: 700; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.estremo small { display: block; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+.estremo.sx { left: 0; } .estremo.dx { right: 0; text-align: right; }
+
+.piede { padding: 16px 22px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+@media (min-width: 900px) { .piede { padding: 22px 8px 0; } }
+.piede p { flex: 1 1 260px; color: var(--tenue); font-weight: 600; }
+.piede p b { color: var(--inchiostro); }
+.btn { flex: 1 1 260px; min-height: 60px; border-radius: 999px; border: 0; font: inherit; font-size: 1.1rem; font-weight: 780; background: var(--inchiostro); color: var(--carta); cursor: pointer; }
+.btn.timbrato { animation: premi .4s; } @keyframes premi { 30% { transform: scale(.95); } 70% { transform: scale(1.02); } }
+.proposta { text-align: center; color: var(--tenue); font-size: .8rem; font-weight: 600; padding: 4px 0 16px; }
+:focus-visible { outline: 3px solid #f97316; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .cielo, .stelle { transition: none; } .btn.timbrato { animation: none; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <section class="cielo" id="cielo" aria-labelledby="ora">
+    <div class="stelle" aria-hidden="true"></div>
+    <div class="cima"><p>Oggi<b>venerdì 20 novembre</b></p><button class="chiaro" id="intero" aria-pressed="false">Schermo intero</button></div>
+    <div class="titolo">
+      <p class="et" id="et">Giornata maturata alle</p>
+      <p class="ora serif" id="ora">--:--</p>
+      <p class="conto" id="conto"></p>
+      <p class="buono" id="buono">Buono pasto <b id="oraB">--:--</b> <span id="traB"></span></p>
+    </div>
+    <div class="arco" aria-hidden="true">
+      <svg id="svg" viewBox="0 0 1000 272" preserveAspectRatio="xMidYMax meet">
+        <defs><radialGradient id="alone"><stop offset="0" stop-color="#fff7d6" stop-opacity=".9"/><stop offset=".4" stop-color="#fde68a" stop-opacity=".45"/><stop offset="1" stop-color="#fde68a" stop-opacity="0"/></radialGradient></defs>
+        <path id="percorso" class="resto" d="M 40 270 Q 500 -150 960 270"/>
+        <path id="fatto" class="fatto" d="M 40 270 Q 500 -150 960 270"/>
+        <g class="segno" id="segno"></g>
+        <circle id="alone-c" class="alone" r="95"/><circle id="sole" class="sole" r="28"/>
+        <line class="linea" id="linea" x1="0" y1="270" x2="1000" y2="270"/>
+      </svg>
+      <p class="estremo sx"><small>Ingresso</small><span id="eI">--:--</span></p>
+      <p class="estremo dx"><small>Uscita</small><span id="eU">--:--</span></p>
+    </div>
+  </section>
+  <div class="piede">
+    <p id="riga"></p>
+    <button class="btn" id="timbra">Vado in pausa</button>
+  </div>
+  <p class="proposta">Proposta B · Orizzonte — la giornata come il percorso del sole, il buono pasto segnato sull'arco</p>
+</div>
+<script type="module">
+import { avvia, coloreFase, feedback, coriandoli, schermoIntero } from './demo.js';
+const $ = (s) => document.querySelector(s);
+const scuro = matchMedia('(prefers-color-scheme: dark)').matches;
+const A = scuro ? [[15, 23, 62], [23, 37, 84], [49, 24, 84], [10, 12, 36]] : [[37, 99, 235], [30, 64, 175], [91, 33, 182], [30, 27, 75]];
+const B = scuro ? [[180, 83, 9], [194, 65, 12], [190, 24, 93], [30, 27, 75]] : [[56, 140, 230], [234, 88, 12], [219, 39, 119], [67, 56, 202]];
+const C = scuro ? [[253, 186, 116], [251, 146, 60], [244, 114, 182], [99, 102, 241]] : [[186, 230, 253], [253, 186, 116], [251, 207, 232], [129, 140, 248]];
+if (innerWidth < 600) {
+  $('#svg').setAttribute('viewBox', '0 0 600 272');
+  for (const id of ['percorso', 'fatto']) $('#' + id).setAttribute('d', 'M 24 270 Q 300 -90 576 270');
+  $('#linea').setAttribute('x2', '600');
+  document.documentElement.style.setProperty('--fs', '24px');
+}
+const P = $('#percorso'), L = P.getTotalLength(), F = $('#fatto');
+F.style.strokeDasharray = `${L} ${L}`;
+let segnato = false;
+avvia((s) => {
+  const f = s.fGiornata;
+  const fase = s.giornataOk ? 1 : f * 0.7;
+  const cielo = $('#cielo');
+  cielo.style.setProperty('--a', coloreFase(fase, A));
+  cielo.style.setProperty('--b', coloreFase(fase, B));
+  cielo.style.setProperty('--c', coloreFase(fase, C));
+  cielo.style.setProperty('--notte', s.giornataOk ? 1 : scuro ? .5 : 0);
+  F.style.strokeDashoffset = L * (1 - f);
+  const p = P.getPointAtLength(L * f);
+  for (const id of ['sole', 'alone-c']) { $('#' + id).setAttribute('cx', p.x); $('#' + id).setAttribute('cy', p.y); }
+  if (!segnato) {
+    // posizione del buono pasto sull'arco: frazione della giornata in cui matura
+    const [hI, mI] = s.ingresso.split(':').map(Number), [hB, mB] = s.buono.split(':').map(Number), [hG, mG] = s.giornata.split(':').map(Number);
+    const fr = ((hB * 60 + mB) - (hI * 60 + mI)) / ((hG * 60 + mG) - (hI * 60 + mI));
+    const q = P.getPointAtLength(L * fr);
+    const larg = $('#svg').viewBox.baseVal.width;
+    const aSinistra = q.x > larg * 0.62;
+    $('#segno').innerHTML = `<circle cx="${q.x}" cy="${q.y}" r="6"/><text x="${aSinistra ? q.x - 14 : q.x + 14}" y="${q.y + (aSinistra ? 34 : -10)}" text-anchor="${aSinistra ? 'end' : 'start'}">buono pasto</text>`;
+    segnato = true;
+  }
+  $('#ora').textContent = s.giornata;
+  $('#et').textContent = s.giornataOk ? 'Giornata maturata ✓ dalle' : 'Giornata maturata alle';
+  $('#conto').innerHTML = s.giornataOk ? 'Puoi uscire' : `mancano <b>${s.contoGiornata}</b>`;
+  $('#oraB').textContent = s.buono;
+  $('#traB').textContent = s.buonoOk ? '✓ maturato' : `tra ${s.contoBuono}`;
+  $('#eI').textContent = s.ingresso; $('#eU').textContent = s.giornata;
+  const riga = `Ingresso <b>${s.ingresso}</b> · pausa pranzo <b>${s.pausaPranzo} min</b>${s.mancaPausa ? ` (+${s.mancaPausa})` : ' ✓'}`;
+  if ($('#riga').innerHTML !== riga) $('#riga').innerHTML = riga;
+});
+document.addEventListener('maturato', () => coriandoli(['#fde68a', '#f97316', '#db2777', '#fff']));
+$('#timbra').addEventListener('click', (e) => feedback(e.currentTarget));
+$('#intero').addEventListener('click', (e) => schermoIntero(e.currentTarget));
+</script>
+</body>
+</html>
