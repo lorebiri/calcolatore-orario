@@ -171,3 +171,19 @@ dialog h2 { font-size: 1.25rem; font-weight: 750; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 @media (forced-colors: active) { .barra i { background: CanvasText; } }
+
+/* ── Pagina di istruzioni per ePAS ── */
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.testata > .btn { min-height: 44px; text-decoration: none; color: var(--testo); font-size: .92rem; }
+.istruzioni .intro { font-size: 1.05rem; }
+.passi { padding-left: 1.4em; display: grid; gap: 12px; }
+.passi li::marker { font-weight: 800; color: var(--accento2); }
+.trascina { margin: 12px 0 4px; }
+.trascina .btn { text-decoration: none; cursor: grab; }
+kbd { font: inherit; font-size: .85em; font-weight: 700; padding: 1px 6px; border: 1px solid var(--bordo); border-bottom-width: 2px; border-radius: 6px; background: var(--superficie2); }
+textarea#codice {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--bordo); border-radius: 12px; background: var(--superficie2);
+  font: 500 .8rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--testo); resize: vertical; word-break: break-all;
+}
+.elenco { padding-left: 1.2em; display: grid; gap: 8px; }
+.link-epas { color: var(--accento); font-weight: 650; text-underline-offset: 3px; }

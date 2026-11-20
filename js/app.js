@@ -2,7 +2,7 @@
 // I dati (timbrature di oggi e regole) restano in localStorage su questo dispositivo.
 import { REGOLE_DEFAULT, calcolaGiornata, parseHHMM, parseDurata, fmtOra, fmtDurata, pad, dateKey } from './calc.js';
 
-const VERSIONE = '2.1.0';
+const VERSIONE = '2.2.0';
 const CHIAVE = 'calcolatore-orario';
 const CHIAVE_AVVISI = 'calcolatore-orario-avvisi';
 const $ = (s) => document.querySelector(s);
@@ -313,8 +313,37 @@ $('#btnTema').addEventListener('click', () => {
   toast('Tema ' + NOMI_TEMA[stato.impostazioni.tema]);
 });
 
+// ─────────── Importazione da ePAS (pulsante nei preferiti) ───────────
+// Il pulsante apre l'app con i dati nel frammento #epas=… : il frammento non arriva a nessun server.
+function importaDaEpas() {
+  const m = /^#epas=([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  let d;
+  try {
+    const b64 = m[1].replace(/-/g, '+').replace(/_/g, '/');
+    d = JSON.parse(decodeURIComponent(escape(atob(b64))));
+  } catch { toast('Dati da ePAS non leggibili: riprova dal cartellino'); return; }
+  const ora = (v) => (typeof v === 'string' && (v === '' || parseHHMM(v) !== null) ? v : null);
+  const valido = d && d.v === 1 && /^\d{4}-\d{2}-\d{2}$/.test(d.d) && ora(d.i) && Array.isArray(d.p)
+    && d.p.every((x) => Array.isArray(x) && ora(x[0]) && ora(x[1]) !== null);
+  if (!valido) { toast('Dati da ePAS non validi: riprova dal cartellino'); return; }
+  if (d.d !== oggi()) { toast('Il cartellino letto non è di oggi: niente importato'); return; }
+  stato.giorno = { data: d.d, ingresso: d.i, pause: d.p.map(([uscita, rientro]) => ({ uscita, rientro })) };
+  const r = d.r || {};
+  const num = (v, max) => (Number.isInteger(v) && v >= 0 && v <= max ? v : null);
+  const nuove = { ore: num(r.ore, 1440), soglia: num(r.soglia, 1440), pausaMin: num(r.pausaMin, 180), finestraDa: num(r.finestraDa, 1439), finestraA: num(r.finestraA, 1439) };
+  if (nuove.ore === 0) nuove.ore = null;
+  if (nuove.finestraDa !== null && nuove.finestraA !== null && nuove.finestraDa >= nuove.finestraA) { nuove.finestraDa = null; nuove.finestraA = null; }
+  for (const [k, v] of Object.entries(nuove)) if (v !== null) stato.impostazioni[k] = v;
+  salva();
+  const np = d.p.length;
+  toast(`Da ePAS: ingresso ${d.i}${np ? `, ${np} ${np === 1 ? 'pausa' : 'pause'}` : ''}${d.r ? ' e regole del giorno' : ''}`);
+}
+
 // ─────────── Avvio ───────────
 $('#versione').textContent = 'v' + VERSIONE;
+importaDaEpas();
 applicaTema();
 notaRegole();
 disegnaForm();
@@ -325,6 +354,7 @@ setInterval(() => {
   aggiorna();
 }, 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiorna(); });
+window.addEventListener('hashchange', () => { if (location.hash.startsWith('#epas=')) { importaDaEpas(); notaRegole(); disegnaForm(); aggiorna(); } });
 window.addEventListener('storage', (e) => { if (e.key === CHIAVE) { stato = carica(); applicaTema(); notaRegole(); disegnaForm(); aggiorna(); } });
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('sw.js').catch(() => { /* offline non disponibile */ });

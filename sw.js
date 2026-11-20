@@ -1,6 +1,6 @@
 // Service worker: l'app funziona anche offline. Nessuna richiesta verso altri siti.
 // Strategia: risposta dalla cache se c'è, intanto si scarica la versione nuova per la prossima apertura.
-const CACHE = 'calcolatore-orario-v2.1.0';
+const CACHE = 'calcolatore-orario-v2.2.0';
 const FILE = [
   './',
   'index.html',
@@ -8,6 +8,10 @@ const FILE = [
   'js/app.js',
   'js/calc.js',
   'js/tema.js',
+  'js/epas-lettore.js',
+  'js/bookmarklet.js',
+  'js/istruzioni-epas.js',
+  'epas.html',
   'fonts/inter-latin-wght.woff2',
   'manifest.webmanifest',
   'icons/icon.svg',

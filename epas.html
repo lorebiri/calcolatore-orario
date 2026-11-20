@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Importa da ePAS · Calcolatore orario</title>
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<script src="js/tema.js"></script>
+<script type="module" src="js/istruzioni-epas.js"></script>
+</head>
+<body>
+<header class="testata">
+  <h1>
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M16 3a13 13 0 0 1 12.4 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 9v7l4.5 3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Importa da ePAS
+  </h1>
+  <a class="btn btn-secondario" href="./">Torna al calcolatore</a>
+</header>
+
+<main class="contenitore istruzioni">
+  <section class="card">
+    <p class="intro">Un pulsante da mettere nei <strong>preferiti</strong> del browser. Quando sei sul tuo cartellino ePAS (già collegato), lo tocchi e il calcolatore si apre con <strong>l'ingresso, le pause e le regole del tuo orario di oggi</strong>.</p>
+    <p class="aiuto">Legge solo la pagina che hai davanti. Non chiede password, non salva credenziali e non manda dati a nessun server.</p>
+  </section>
+
+  <section class="card" aria-labelledby="tPc">
+    <h2 class="titoletto" id="tPc">Sul computer</h2>
+    <ol class="passi">
+      <li>Mostra la barra dei preferiti: <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>B</kbd> (su Mac <kbd>⌘</kbd>+<kbd>Maiusc</kbd>+<kbd>B</kbd>).</li>
+      <li>Trascina questo pulsante nella barra dei preferiti:
+        <p class="trascina"><a id="bookmarklet" class="btn btn-primario" href="#" draggable="true">⏱ Manda al calcolatore</a></p>
+      </li>
+      <li>Apri ePAS, vai su <strong>Situazione mensile</strong> e clicca <strong>Manda al calcolatore</strong> nella barra dei preferiti.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="tIos">
+    <h2 class="titoletto" id="tIos">Su iPhone e iPad (Safari)</h2>
+    <ol class="passi">
+      <li>Tocca <strong>Copia il codice</strong> qui sotto.</li>
+      <li>Aggiungi questa pagina ai preferiti: tasto <strong>Condividi</strong> → <strong>Aggiungi segnalibro</strong> → <strong>Salva</strong>.</li>
+      <li>Apri i <strong>Segnalibri</strong> → <strong>Modifica</strong> → tocca il segnalibro appena creato. Cambia il nome in «Manda al calcolatore», cancella l'indirizzo e <strong>incolla</strong> il codice. Tocca <strong>Fine</strong>.</li>
+      <li>Su ePAS apri la <strong>Situazione mensile</strong>, poi apri i Segnalibri e tocca <strong>Manda al calcolatore</strong>.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="tAnd">
+    <h2 class="titoletto" id="tAnd">Su Android (Chrome)</h2>
+    <ol class="passi">
+      <li>Tocca <strong>Copia il codice</strong> qui sotto.</li>
+      <li>Aggiungi questa pagina ai preferiti: menu <strong>⋮</strong> → stella <strong>☆</strong>.</li>
+      <li>Menu <strong>⋮</strong> → <strong>Preferiti</strong> → tieni premuto il preferito → <strong>Modifica</strong>. Nome: «Manda al calcolatore». URL: cancella e <strong>incolla</strong> il codice.</li>
+      <li>Su ePAS apri la <strong>Situazione mensile</strong>, tocca la barra degli indirizzi, scrivi <strong>Manda al calcolatore</strong> e tocca il preferito tra i suggerimenti.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="tCodice">
+    <h2 class="titoletto" id="tCodice">Il codice</h2>
+    <label for="codice" class="vh">Codice del pulsante</label>
+    <textarea id="codice" readonly rows="4" spellcheck="false"></textarea>
+    <div class="bottoni">
+      <button type="button" class="btn btn-primario" id="copia">Copia il codice</button>
+    </div>
+    <p class="aiuto" id="esitoCopia" role="status"></p>
+  </section>
+
+  <section class="card" aria-labelledby="tCosa">
+    <h2 class="titoletto" id="tCosa">Cosa legge</h2>
+    <ul class="elenco">
+      <li>Le timbrature di <strong>oggi</strong>: la prima entrata diventa l'ingresso, ogni uscita e rientro diventa una pausa. Le uscite «per motivi di servizio» non contano come pausa, come in ePAS.</li>
+      <li>Le regole del tuo orario di oggi (tempo di lavoro, soglia del buono pasto, pausa minima, fascia del pranzo), dal riquadro «Info orario giornaliero».</li>
+      <li>Nient'altro: niente saldi, residui o dati personali.</li>
+    </ul>
+  </section>
+</main>
+<footer class="piede"><p>Sviluppato da Lorenzo Birindelli</p></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

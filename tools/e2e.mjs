@@ -7,6 +7,7 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
+import { costruisciBookmarklet } from '../js/bookmarklet.js';
 
 const require = createRequire(import.meta.url);
 const { chromium, devices } = require('playwright');
@@ -124,6 +125,90 @@ await prova('nessun overflow orizzontale su telefono piccolo', async () => {
   await page.click('#aggiungiPausa');
   const w = await page.evaluate(() => document.documentElement.scrollWidth);
   assert.ok(w <= 320, `larghezza ${w}`);
+  await ctx.close();
+});
+
+// ─── Pulsante ePAS (bookmarklet) su pagine di prova con dati inventati ───
+const LETTORE = await readFile(join(RADICE, 'js/epas-lettore.js'), 'utf8');
+const BOOKMARKLET = costruisciBookmarklet(LETTORE, URL_APP);
+async function usaBookmarklet(fixture, query = '?month=11&year=2026') {
+  const ctx = await browser.newContext({ locale: 'it-IT', timezoneId: 'Europe/Rome' });
+  await ctx.clock.install({ time: new Date('2026-11-20T14:20:00+01:00') });
+  const page = await ctx.newPage();
+  const richiesteEsterne = [];
+  await page.goto(`${URL_APP}tests/fixtures/${fixture}${query}`);
+  page.on('request', (r) => richiesteEsterne.push(r.url()));
+  let avviso = null;
+  page.on('dialog', async (d) => { avviso = d.message(); await d.dismiss(); });
+  const nuova = ctx.waitForEvent('page', { timeout: 3000 }).catch(() => null);
+  await page.evaluate(decodeURIComponent(BOOKMARKLET.slice('javascript:'.length)));
+  const app = await nuova;
+  return { ctx, page, app, avviso, richiesteEsterne };
+}
+
+await prova('ePAS: giornata normale → ingresso, pause e regole nel calcolatore', async () => {
+  const { ctx, app, avviso, richiesteEsterne } = await usaBookmarklet('epas-normale.html');
+  assert.equal(avviso, null);
+  assert.ok(app, 'il calcolatore non si è aperto');
+  assert.match(app.url(), /#epas=/);
+  await app.waitForLoadState();
+  await app.waitForFunction(() => document.querySelector('#oraGiornata').textContent !== '--:--');
+  assert.equal(await app.inputValue('#ingresso'), '08:10');
+  assert.equal(await app.inputValue('#pausa-uscita-1'), '12:30');
+  assert.equal(await app.inputValue('#pausa-rientro-1'), '13:00');
+  assert.equal(await app.locator('#oraGiornata').textContent(), '16:02');
+  assert.equal(await app.locator('#oraBuono').textContent(), '14:50');
+  assert.ok(!app.url().includes('#'), 'il frammento va tolto dopo l\'importazione');
+  assert.deepEqual(richiesteEsterne.filter((u) => u.includes('fixtures')), []);
+  await ctx.close();
+});
+
+await prova('ePAS: uscite per servizio ignorate, regole «Maternità» lette dal popover', async () => {
+  const { ctx, app } = await usaBookmarklet('epas-servizio.html');
+  await app.waitForFunction(() => document.querySelector('#oraGiornata').textContent !== '--:--');
+  assert.equal(await app.inputValue('#ingresso'), '07:58');
+  assert.equal(await app.locator('#listaPause li').count(), 1);
+  assert.equal(await app.inputValue('#pausa-uscita-0'), '12:30');
+  assert.match(await app.locator('#notaRegole').textContent(), /5:12 al giorno · buono pasto dopo 4:00/);
+  assert.equal(await app.locator('#oraGiornata').textContent(), '13:40'); // 7:58 + 5:12 + 20 + 10
+  await ctx.close();
+});
+
+await prova('ePAS: in pausa adesso (ultima timbratura un\'uscita), quattro coppie', async () => {
+  const { ctx, app } = await usaBookmarklet('epas-in-pausa.html');
+  await app.waitForFunction(() => document.querySelector('#oraGiornata').textContent !== '--:--');
+  assert.equal(await app.inputValue('#pausa-uscita-1'), '12:40');
+  assert.equal(await app.inputValue('#pausa-rientro-1'), '');
+  assert.ok(await app.getByRole('button', { name: 'Rientro dalla pausa adesso' }).isVisible());
+  await ctx.close();
+});
+
+await prova('ePAS: la data si legge anche senza parametri nell\'indirizzo', async () => {
+  const { ctx, app } = await usaBookmarklet('epas-normale.html', '');
+  assert.ok(app);
+  await ctx.close();
+});
+
+for (const [fixture, query, atteso] of [
+  ['epas-ferie.html', '?month=11&year=2026', /non c'è ancora un ingresso/],
+  ['epas-ottobre.html', '?month=10&year=2026', /mese corrente/],
+  ['non-epas.html', '', /Apri il cartellino/],
+]) {
+  await prova(`ePAS: messaggio chiaro su ${fixture}`, async () => {
+    const { ctx, app, avviso } = await usaBookmarklet(fixture, query);
+    assert.equal(app, null);
+    assert.match(avviso || '', atteso);
+    await ctx.close();
+  });
+}
+
+await prova('pagina di istruzioni: pulsante pronto e codice copiabile', async () => {
+  const { ctx, page, errori } = await nuovaPagina();
+  await page.goto(URL_APP + 'epas.html');
+  await page.waitForFunction(() => document.getElementById('codice').value.startsWith('javascript:'));
+  const href = await page.getAttribute('#bookmarklet', 'href');
+  assert.ok(href.startsWith('javascript:') && href.length < 8000, `lunghezza ${href.length}`);
+  assert.deepEqual(errori, []);
   await ctx.close();
 });
 

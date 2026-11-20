@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="utf-8"><title>ePAS - Timbrature</title></head>
+<body>
+<!-- Pagina di prova con dati inventati, struttura come ePAS (personStamping.html) -->
+<nav class="navbar"><span class="badge">Ottobre 2026</span></nav>
+<div class="col-xs-12 col-lg-8">
+  <table id="tabellonetimbrature" class="table table-bordered table-condensed">
+	<caption class="sr-only">Riepilogo mensile Ottobre 2026</caption>
+    <tr>
+      <th class="group-single">Giorno</th>
+      <th class="group-single">Buono<br>pasto</th>
+      <th class="invisible"></th>
+      <th class="group-single">Codice</th>
+      <th class="group-left">1<sup>a</sup> <br/>entrata</th>
+      <th class="group-right">1<sup>a</sup> <br/>uscita</th>
+      <th class="invisible"></th>
+      <th class="group-single">Tempo<br>lavoro</th>
+      <th class="group-single">Diffe-<br/>renza</th>
+      <th class="group-single">Progres-<br/>sivo</th>
+      <th class="group-single">Tipo<br>Orario</th>
+    </tr>
+
+      <tr>
+        <td class="capitalized default-single">
+            <a href="/personDays/personDayHistory?personDayId=900125" data-async-modal="#defaultModal">
+              20 mar
+            </a>
+        </td>
+        <td class="default-single"></td>
+        <td class="invisible"></td>
+        <td class="default-single"></td>
+        <td class="positionleft stamping
+       default-left"
+    >
+            <a href="/stampings/edit?stampingId=700146" data-async-modal="#modalStamping">
+              08:00
+            </a>
+    </td>
+        <td class="positionright stamping
+       default-right"
+    >
+            <a href="/stampings/edit?stampingId=700147" data-async-modal="#modalStamping">
+              16:00
+            </a>
+    </td>
+        <td class="invisible"></td>
+        <td class="tempoLavoro default-single"></td>
+        <td class="differenza default-single"></td>
+        <td class="progressivo default-single"></td>
+        <td class="default-single" webui-popover-hover data-url="#wtt-900125"  data-title="Info orario giornaliero">
+    <span class="text-info">Normale</span>
+</td>
+<div class="webui-popover-content" id="wtt-900125">
+  <strong>Normale</strong><br>
+  Tempo lavoro: <strong>07:12</strong><br>
+  Tempo lavoro per buono pasto: <strong>06:00</strong><br>
+  Durata minima intervallo pranzo: <strong>00:30</strong><br>
+  Finestra intervallo pranzo: <strong>12:00-15:00</strong> (estremi compresi)<br>
+  	Finestra apertura/chiusura sede: <strong>07:00-21:00</strong> (estremi compresi)
+</div>
+      </tr>
+  </table>
+</div>
+<div id="riepiloghi"><p>Residuo a fine mese: 01:23</p></div>
+</body>
+</html>
