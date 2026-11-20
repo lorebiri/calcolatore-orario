@@ -1,0 +1,11 @@
+{
+  "name": "calcolatore-orario",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Calcolatore dell'orario di lavoro: ora di uscita, buono pasto, saldo ore. Tutto resta sul dispositivo.",
+  "scripts": {
+    "test": "TZ=Europe/Rome node --test tests/*.test.mjs",
+    "e2e": "node tools/e2e.mjs"
+  }
+}

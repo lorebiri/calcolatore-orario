@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test dei calcoli
+        run: npm test
+      - name: Test dei calcoli in un altro fuso orario
+        run: TZ=America/New_York node --test tests/*.test.mjs
+      - name: Installa Playwright
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Prova nel browser
+        run: npm run e2e

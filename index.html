@@ -1,531 +1,261 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Work Time Tracker</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
-
-  :root {
-    --bg:       #0c1117;
-    --surface:  #141b24;
-    --surface2: #1c2533;
-    --border:   rgba(255,255,255,0.07);
-    --amber:    #f59e0b;
-    --amber-dim:#92600a;
-    --cyan:     #22d3ee;
-    --red:      #ef4444;
-    --green:    #4ade80;
-    --text:     #e2e8f0;
-    --muted:    #64748b;
-    --radius:   20px;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 32px 20px 60px;
-  }
-
-  .container { max-width: 860px; margin: auto; }
-
-  /* ── Header ── */
-  .header {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-
-  .header h1 {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .badge {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--amber);
-    background: rgba(245,158,11,0.12);
-    border: 1px solid rgba(245,158,11,0.25);
-    padding: 3px 9px;
-    border-radius: 999px;
-  }
-
-  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-
-  /* ── Layout ── */
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  @media (max-width: 620px) {
-    .layout { grid-template-columns: 1fr; }
-  }
-
-  /* ── Cards ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-  }
-
-  .card-title {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 18px;
-  }
-
-  /* ── Inputs ── */
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  input[type="time"] {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--surface2);
-    color: var(--text);
-    font-size: 16px;
-    font-family: inherit;
-    font-weight: 600;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  input[type="time"]:focus {
-    border-color: var(--amber);
-  }
-
-  /* ── Buttons ── */
-  .btn {
-    border: none;
-    padding: 11px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    font-family: inherit;
-    transition: opacity 0.15s, transform 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
-
-  .btn-primary { background: var(--amber); color: #0c1117; }
-  .btn-danger  { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
-
-  /* ── Pause entries ── */
-  #usciteContainer { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-
-  .pausa-row {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 10px;
-    align-items: end;
-    animation: slideIn 0.2s ease;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── Circular progress (SVG) ── */
-  .ring-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0 6px;
-  }
-
-  .ring-svg { width: 160px; height: 160px; }
-
-  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 10; }
-
-  .ring-fill {
-    fill: none;
-    stroke: url(#ringGrad);
-    stroke-width: 10;
-    stroke-linecap: round;
-    stroke-dasharray: 408;
-    stroke-dashoffset: 408;
-    transition: stroke-dashoffset 1s linear;
-    transform: rotate(-90deg);
-    transform-origin: center;
-  }
-
-  .ring-center {
-    text-align: center;
-    margin-top: -8px;
-  }
-
-  .ring-pct {
-    font-size: 36px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1;
-    color: var(--amber);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .ring-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  /* ── Metric rows ── */
-  .metrics { display: flex; flex-direction: column; gap: 14px; }
-
-  .metric-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 14px;
-    background: var(--surface2);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
-
-  .metric-key {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 500;
-  }
-
-  .metric-val {
-    font-size: 18px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.5px;
-  }
-
-  .metric-val.amber { color: var(--amber); }
-  .metric-val.cyan  { color: var(--cyan); }
-  .metric-val.green { color: var(--green); }
-  .metric-val.red   { color: var(--red); }
-
-  /* ── Status banner ── */
-  .status-banner {
-    margin-top: 16px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
-    display: none;
-  }
-
-  .status-banner.warn {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-    color: #fca5a5;
-    display: block;
-  }
-
-  .status-banner.ok {
-    background: rgba(74,222,128,0.1);
-    border: 1px solid rgba(74,222,128,0.2);
-    color: var(--green);
-    display: block;
-  }
-
-  /* ── Full-width bottom card ── */
-  .card-full { margin-top: 16px; }
-
-  .info-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .info-chip {
-    flex: 1;
-    min-width: 180px;
-    padding: 12px 16px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 13px;
-  }
-
-  .info-chip .chip-label {
-    color: var(--muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-  }
-
-  .info-chip .chip-val { font-weight: 600; }
-
-  /* ── Footer ── */
-  footer {
-    text-align: center;
-    margin-top: 44px;
-    color: var(--muted);
-    font-size: 12px;
-    letter-spacing: 0.03em;
-  }
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calcolatore orario</title>
+<meta name="description" content="Calcola a che ora puoi uscire, quando maturi il buono pasto e il saldo delle ore. I dati restano sul tuo dispositivo.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c1117" media="(prefers-color-scheme: dark)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+<script src="js/tema.js"></script>
+<script type="module" src="js/app.js"></script>
 </head>
 <body>
+<a class="salta" href="#principale">Vai al contenuto</a>
 
-<div class="container">
-
-  <div class="header">
-    <h1>Work Time Tracker</h1>
-    <span class="badge">CNR · 7h 12m</span>
+<header class="testata">
+  <div class="testata-titolo">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M16 3a13 13 0 0 1 12.4 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 9v7l4.5 3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Calcolatore orario</h1>
   </div>
-  <p class="subtitle">Monitoraggio intelligente dell'orario lavorativo</p>
+  <button type="button" class="btn-icona" id="btnTema" aria-label="Tema: automatico">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor"/></svg>
+  </button>
+</header>
 
-  <div class="layout">
+<nav class="schede-nav" aria-label="Sezioni">
+<div class="schede" role="tablist" aria-label="Sezioni">
+  <button type="button" role="tab" id="tab-oggi" aria-controls="vista-oggi" aria-selected="true">Giornata</button>
+  <button type="button" role="tab" id="tab-storico" aria-controls="vista-storico" aria-selected="false" tabindex="-1">Storico</button>
+  <button type="button" role="tab" id="tab-impostazioni" aria-controls="vista-impostazioni" aria-selected="false" tabindex="-1">Impostazioni</button>
+</div>
+</nav>
 
-    <!-- LEFT: input -->
-    <div class="card">
-      <div class="card-title">Orario di lavoro</div>
+<main id="principale" tabindex="-1">
 
-      <label for="entrata">Ingresso</label>
-      <input type="time" id="entrata" />
+<!-- ═══════════════ GIORNATA ═══════════════ -->
+<section id="vista-oggi" role="tabpanel" aria-labelledby="tab-oggi" class="vista">
 
-      <div style="margin-top:16px">
-        <button class="btn btn-primary" onclick="aggiungiUscita()">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Aggiungi pausa
-        </button>
-      </div>
-
-      <div id="usciteContainer"></div>
-
-      <div id="pausaStatus" class="status-banner"></div>
+  <div class="navdata">
+    <button type="button" class="btn-icona" id="giornoPrec" aria-label="Giorno precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="navdata-centro">
+      <h2 id="titoloGiorno">Oggi</h2>
+      <button type="button" class="link" id="vaiOggi" hidden>Torna a oggi</button>
     </div>
+    <button type="button" class="btn-icona" id="giornoSucc" aria-label="Giorno successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
 
-    <!-- RIGHT: progress ring + metrics -->
-    <div class="card">
-      <div class="card-title">Stato giornata</div>
+  <div class="griglia">
 
-      <div class="ring-wrap">
-        <svg class="ring-svg" viewBox="0 0 130 130">
+    <!-- Riepilogo principale -->
+    <article class="card hero" aria-labelledby="heroTitolo">
+      <div class="anello" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
           <defs>
-            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#f59e0b"/>
-              <stop offset="100%" stop-color="#22d3ee"/>
+            <linearGradient id="gradAnello" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--accento)"/>
+              <stop offset="1" stop-color="var(--accento2)"/>
             </linearGradient>
           </defs>
-          <circle class="ring-bg" cx="65" cy="65" r="54"/>
-          <circle class="ring-fill" id="ringFill" cx="65" cy="65" r="54"/>
+          <circle class="anello-sfondo" cx="60" cy="60" r="52"/>
+          <circle class="anello-valore" id="anello" cx="60" cy="60" r="52" pathLength="100"/>
         </svg>
-        <div class="ring-center">
-          <div class="ring-pct" id="ringPct">0%</div>
-          <div class="ring-label">completato</div>
+        <div class="anello-testo"><span id="perc">0</span><small>%</small></div>
+      </div>
+      <div class="hero-testo">
+        <p class="hero-etichetta" id="heroEtichetta">Puoi uscire alle</p>
+        <p class="hero-ora" id="heroTitolo">--:--</p>
+        <p class="hero-sotto" id="heroSotto">Inserisci l'ora di ingresso</p>
+      </div>
+    </article>
+
+    <!-- Timbrature -->
+    <article class="card card-timbrature" aria-labelledby="titTimbrature">
+      <div class="card-testa">
+        <h3 id="titTimbrature">Timbrature</h3>
+      </div>
+
+      <div class="azioni-rapide" id="azioniRapide"></div>
+
+      <div class="campo-ora">
+        <label for="ingresso">Ingresso</label>
+        <div class="riga-input">
+          <input type="time" id="ingresso" step="60">
+          <button type="button" class="btn-adesso" data-adesso="ingresso" aria-label="Ingresso: adesso">Adesso</button>
         </div>
       </div>
 
-      <div class="metrics" style="margin-top:16px">
-        <div class="metric-row">
-          <span class="metric-key">⏱ Lavorato</span>
-          <span class="metric-val amber" id="tempoLavorato">00:00</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-key">🏁 Fine giornata</span>
-          <span class="metric-val cyan" id="fineGiornata">--:--</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-key">🎟 Buono pasto</span>
-          <span class="metric-val" id="buonoPasto">--:--</span>
+      <ol class="lista-pause" id="listaPause" aria-label="Pause"></ol>
+
+      <button type="button" class="btn btn-secondario" id="aggiungiPausa">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        Aggiungi pausa
+      </button>
+
+      <div class="campo-ora">
+        <label for="uscita">Uscita <span class="facoltativo">(a fine giornata)</span></label>
+        <div class="riga-input">
+          <input type="time" id="uscita" step="60">
+          <button type="button" class="btn-adesso" data-adesso="uscita" aria-label="Uscita: adesso">Adesso</button>
         </div>
       </div>
-    </div>
+
+      <p class="avviso" id="avvisoPausa" role="status"></p>
+      <div role="alert"><ul class="errori" id="errori"></ul></div>
+
+      <details class="dettagli-giorno">
+        <summary>Ore da fare e note per questo giorno</summary>
+        <div class="campo-ora">
+          <label for="oreGiorno">Ore da fare</label>
+          <input type="text" id="oreGiorno" inputmode="decimal" autocomplete="off" placeholder="7:12" aria-describedby="oreGiornoAiuto">
+          <p class="aiuto" id="oreGiornoAiuto">Lascia vuoto per usare le impostazioni. Utile per permessi o giornate corte.</p>
+        </div>
+        <div class="campo-ora">
+          <label for="nota">Nota</label>
+          <input type="text" id="nota" maxlength="120" autocomplete="off" placeholder="es. smart working, permesso…">
+        </div>
+        <button type="button" class="btn btn-pericolo" id="svuotaGiorno">Svuota questo giorno</button>
+      </details>
+    </article>
+
+    <!-- Dettagli -->
+    <article class="card card-dettagli" aria-labelledby="titDettagli">
+      <h3 id="titDettagli">Dettagli</h3>
+      <dl class="metriche">
+        <div><dt>Lavorato</dt><dd id="mLavorato">0:00</dd></div>
+        <div><dt>Ore da fare</dt><dd id="mOre">7:12</dd></div>
+        <div><dt>Fine giornata</dt><dd id="mFine" class="accento2">--:--</dd></div>
+        <div><dt id="mBuonoEt">Buono pasto</dt><dd id="mBuono">--:--</dd></div>
+        <div><dt>Pause</dt><dd id="mPause">0:00</dd></div>
+        <div><dt id="mSaldoEt">Se esci ora</dt><dd id="mSaldo">—</dd></div>
+      </dl>
+    </article>
+
+    <!-- Settimana e mese -->
+    <article class="card card-periodo" aria-labelledby="titPeriodo">
+      <h3 id="titPeriodo">Settimana e mese</h3>
+      <dl class="metriche">
+        <div><dt>Settimana lavorato</dt><dd id="sLavorato">0:00</dd></div>
+        <div><dt>Settimana da fare</dt><dd id="sDovuto">0:00</dd></div>
+        <div><dt>Saldo settimana</dt><dd id="sSaldo">0:00</dd></div>
+        <div><dt>Saldo mese</dt><dd id="meseSaldo">0:00</dd></div>
+      </dl>
+      <p class="aiuto">I saldi contano le giornate con l'uscita inserita.</p>
+    </article>
 
   </div>
+</section>
 
-  <!-- Bottom: countdown chips + message -->
-  <div class="card card-full">
-    <div class="card-title">Countdown</div>
-    <div class="info-row">
-      <div class="info-chip">
-        <div class="chip-label">⌛ Alla fine giornata</div>
-        <div class="chip-val" id="countdownFine">--:--</div>
-      </div>
-      <div class="info-chip">
-        <div class="chip-label">🎟 Al buono pasto</div>
-        <div class="chip-val" id="countdownBuono">--:--</div>
-      </div>
-      <div class="info-chip">
-        <div class="chip-label">💡 Se esci ora</div>
-        <div class="chip-val" id="uscitaOraMsg">—</div>
-      </div>
-    </div>
+<!-- ═══════════════ STORICO ═══════════════ -->
+<section id="vista-storico" role="tabpanel" aria-labelledby="tab-storico" class="vista" hidden>
+  <div class="navdata">
+    <button type="button" class="btn-icona" id="mesePrec" aria-label="Mese precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="navdata-centro"><h2 id="titoloMese">Mese</h2></div>
+    <button type="button" class="btn-icona" id="meseSucc" aria-label="Mese successivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
 
-</div>
+  <div class="card">
+    <dl class="metriche quattro">
+      <div><dt>Giorni</dt><dd id="stGiorni">0</dd></div>
+      <div><dt>Lavorato</dt><dd id="stLavorato">0:00</dd></div>
+      <div><dt>Saldo</dt><dd id="stSaldo">0:00</dd></div>
+      <div><dt>Buoni pasto</dt><dd id="stBuoni">0</dd></div>
+    </dl>
+  </div>
 
-<footer>Sviluppato da Lorenzo Birindelli</footer>
+  <div class="card">
+    <table class="tabella">
+      <caption class="vh">Giornate del mese</caption>
+      <thead><tr><th scope="col">Giorno</th><th scope="col">Orario</th><th scope="col">Lavorato</th><th scope="col">Saldo</th></tr></thead>
+      <tbody id="righeStorico"></tbody>
+    </table>
+    <p class="vuoto" id="storicoVuoto">Nessuna giornata registrata in questo mese.</p>
+  </div>
 
-<script>
-const LAVORO_MIN = 7 * 60 + 12;
-const BUONO_MIN  = 6 * 60;
-const CIRC = 2 * Math.PI * 54; // ~339.3
-
-let notificaBuono = false;
-let notificaFine  = false;
-
-function timeToMin(t) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function toHHMM(min) {
-  min = Math.max(0, Math.floor(min));
-  return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
-}
-
-function aggiungiUscita() {
-  const container = document.getElementById('usciteContainer');
-  const div = document.createElement('div');
-  div.className = 'pausa-row';
-  div.innerHTML = `
-    <div>
-      <label>Uscita</label>
-      <input type="time" class="uscitaOra" />
+  <div class="card">
+    <h3>Esporta e backup</h3>
+    <p class="aiuto">I dati sono salvati solo su questo dispositivo, nel browser. Fai un backup ogni tanto: se cancelli i dati del browser o cambi telefono li perdi.</p>
+    <div class="bottoni">
+      <button type="button" class="btn btn-secondario" id="esportaCSV">Esporta mese (CSV)</button>
+      <button type="button" class="btn btn-secondario" id="esportaBackup">Salva backup</button>
+      <label class="btn btn-secondario" for="importaBackup">Ripristina backup</label>
+      <input type="file" id="importaBackup" accept="application/json,.json" class="vh">
     </div>
-    <div>
-      <label>Rientro</label>
-      <input type="time" class="rientroOra" />
+  </div>
+</section>
+
+<!-- ═══════════════ IMPOSTAZIONI ═══════════════ -->
+<section id="vista-impostazioni" role="tabpanel" aria-labelledby="tab-impostazioni" class="vista" hidden>
+  <h2 class="vh">Impostazioni</h2>
+  <form class="card" id="formImpostazioni" novalidate>
+    <h3>Ore da fare</h3>
+    <p class="aiuto">Formato ore:minuti, es. 7:12. Metti 0 nei giorni non lavorativi.</p>
+    <div class="griglia-giorni" id="oreSettimana"></div>
+
+    <h3>Pausa pranzo e buono pasto</h3>
+    <div class="griglia-campi">
+      <div class="campo-ora">
+        <label for="impSoglia">Buono pasto e pausa obbligatoria dopo</label>
+        <input type="text" id="impSoglia" inputmode="decimal" autocomplete="off">
+      </div>
+      <div class="campo-ora">
+        <label for="impPausa">Pausa minima (minuti)</label>
+        <input type="number" id="impPausa" min="0" max="180" step="1" inputmode="numeric">
+      </div>
+      <div class="campo-ora">
+        <label for="impDa">Pausa pranzo valida dalle</label>
+        <input type="time" id="impDa" step="60">
+      </div>
+      <div class="campo-ora">
+        <label for="impA">alle</label>
+        <input type="time" id="impA" step="60">
+      </div>
     </div>
-    <button class="btn btn-danger" onclick="this.closest('.pausa-row').remove()" title="Rimuovi">
-      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-  `;
-  container.appendChild(div);
-}
+    <p class="aiuto">Se non c'è una pausa pranzo valida (dentro la fascia e lunga almeno la pausa minima) vengono aggiunti i minuti di pausa minima, come nella versione precedente.</p>
+    <p class="errori" id="erroriImpostazioni" role="alert"></p>
 
-function getPause() {
-  let totale = 0, pranzoOk = false;
-  document.querySelectorAll('.pausa-row').forEach(el => {
-    const u = el.querySelector('.uscitaOra').value;
-    const r = el.querySelector('.rientroOra').value;
-    if (!u || !r) return;
-    const out = timeToMin(u), inn = timeToMin(r);
-    if (inn <= out) return;
-    const dur = inn - out;
-    totale += dur;
-    if (out >= 12*60 && inn <= 15*60 && dur >= 30) pranzoOk = true;
-  });
-  return { totale, pranzoOk };
-}
+    <div class="bottoni">
+      <button type="submit" class="btn btn-primario">Salva impostazioni</button>
+      <button type="button" class="btn btn-secondario" id="impDefault">Valori iniziali (CNR 7:12)</button>
+    </div>
+  </form>
 
-function aggiorna() {
-  const entrataVal = document.getElementById('entrata').value;
-  if (!entrataVal) return;
+  <div class="card">
+    <h3>Aspetto e avvisi</h3>
+    <fieldset class="scelta">
+      <legend>Tema</legend>
+      <label><input type="radio" name="tema" value="auto"> Automatico</label>
+      <label><input type="radio" name="tema" value="chiaro"> Chiaro</label>
+      <label><input type="radio" name="tema" value="scuro"> Scuro</label>
+    </fieldset>
+    <div class="interruttore">
+      <input type="checkbox" id="impNotifiche" role="switch">
+      <label for="impNotifiche">Avvisami quando matura il buono pasto e quando posso uscire</label>
+    </div>
+    <p class="aiuto" id="notificheInfo">Funziona finché l'app è aperta (anche in secondo piano).</p>
+  </div>
 
-  const entrataMin = timeToMin(entrataVal);
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  <div class="card">
+    <h3>Dati</h3>
+    <p class="aiuto">Nessun dato lascia il dispositivo: niente account, niente server, niente statistiche.</p>
+    <button type="button" class="btn btn-pericolo" id="cancellaTutto">Cancella tutti i dati</button>
+  </div>
+</section>
 
-  const { totale: pauseTot, pranzoOk } = getPause();
-  const penalita = pranzoOk ? 0 : 30;
+</main>
 
-  // Tempo effettivo lavorato = tempo trascorso - pause - penalità
-  const tempoLavorato = Math.max(0, nowMin - entrataMin - pauseTot - penalita);
+<footer class="piede">
+  <p>Sviluppato da Lorenzo Birindelli · <span id="versione">v2</span></p>
+</footer>
 
-  // Fine giornata = entrata + 7h12 + pause + penalità
-  const fineMin  = entrataMin + LAVORO_MIN + pauseTot + penalita;
-  const buonoMin = entrataMin + BUONO_MIN  + pauseTot + penalita;
-
-  // Update metrics
-  document.getElementById('tempoLavorato').textContent = toHHMM(tempoLavorato);
-  document.getElementById('fineGiornata').textContent  = toHHMM(fineMin);
-
-  const buonoEl = document.getElementById('buonoPasto');
-  buonoEl.textContent = toHHMM(buonoMin);
-  const buonoRag = nowMin >= buonoMin;
-  buonoEl.className = 'metric-val ' + (buonoRag ? 'green' : 'amber');
-
-  // Countdowns
-  const cdFine  = fineMin  - nowMin;
-  const cdBuono = buonoMin - nowMin;
-
-  document.getElementById('countdownFine').textContent  = cdFine  > 0 ? toHHMM(cdFine)  : '✓ Completato';
-  document.getElementById('countdownBuono').textContent = cdBuono > 0 ? toHHMM(cdBuono) : '✓ Maturato';
-
-  // Se esci ora
-  const mancante = LAVORO_MIN - tempoLavorato;
-  const msg = document.getElementById('uscitaOraMsg');
-  if (mancante > 0) {
-    msg.textContent = '−' + toHHMM(mancante);
-    msg.style.color = 'var(--red)';
-  } else {
-    msg.textContent = 'Giornata completata ✓';
-    msg.style.color = 'var(--green)';
-  }
-
-  // Ring
-  const pct = Math.min((tempoLavorato / LAVORO_MIN) * 100, 100);
-  const offset = CIRC - (pct / 100) * CIRC;
-  document.getElementById('ringFill').style.strokeDashoffset = offset;
-  document.getElementById('ringPct').textContent = pct.toFixed(1) + '%';
-
-  // Pausa status
-  const statusEl = document.getElementById('pausaStatus');
-  if (pranzoOk) {
-    statusEl.className = 'status-banner ok';
-    statusEl.textContent = 'Pausa pranzo valida rilevata — nessuna penalità';
-  } else {
-    statusEl.className = 'status-banner warn';
-    statusEl.textContent = 'Nessuna pausa pranzo valida → +30 min aggiunti';
-  }
-
-  // Notifiche
-  if (Notification.permission === 'granted') {
-    if (cdBuono <= 0 && !notificaBuono) {
-      new Notification('🎟 Buono pasto maturato');
-      notificaBuono = true;
-    }
-    if (cdFine <= 0 && !notificaFine) {
-      new Notification('🏁 Giornata lavorativa completata');
-      notificaFine = true;
-    }
-  }
-}
-
-// Init ring dasharray
-document.getElementById('ringFill').style.strokeDasharray = CIRC;
-document.getElementById('ringFill').style.strokeDashoffset = CIRC;
-
-setInterval(aggiorna, 1000);
-
-if ('Notification' in window) Notification.requestPermission();
-</script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
